@@ -1,0 +1,29 @@
+﻿@import "../../node_modules/cropperjs/dist/cropper";
+@import "../../node_modules/vue-slider-component/dist-css/vue-slider-component";
+@import "../../node_modules/vue-slider-component/theme/default";
+
+.image-editor {
+    opacity: 0;
+    transition: opacity .15s ease-out;
+
+    &.ready {
+        opacity: 1;
+    }
+
+    .controls {
+        padding: 16px 0 0;
+    }
+}
+
+#previewModal {
+    .image-editor-nav-item {
+        order: -1;
+        display: none;
+    }
+
+    &.has-image-editor {
+        .image-editor-nav-item {
+            display: list-item;
+        }
+    }
+}
