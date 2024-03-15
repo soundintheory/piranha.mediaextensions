@@ -151,7 +151,7 @@ public static class ImagesExtensions
                 return new PhysicalFileProvider(GetProjectPath("assets"));
             }
 
-            return new EmbeddedFileProvider(typeof(CroppedImageFieldModule).Assembly, "SoundInTheory.Piranha.Media.Images.assets");
+            return new EmbeddedFileProvider(typeof(CroppedImageFieldModule).Assembly, "SoundInTheory.Piranha.MediaExtensions.Images.assets");
         }
     }
 
