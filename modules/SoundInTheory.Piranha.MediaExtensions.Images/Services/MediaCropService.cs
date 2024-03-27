@@ -13,6 +13,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SoundInTheory.Piranha.MediaExtensions.Images.Model;
+using Piranha.Cache;
 
 namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
 {
