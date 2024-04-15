@@ -52,7 +52,8 @@ export default {
     props: ["uid", "model", "meta"],
     data(){
         return{
-            selectedImageIndex: null
+            selectedImageIndex: null,
+            isDragAndDropInitialised: false
         }
     },
     methods: {
@@ -103,6 +104,11 @@ export default {
         },
         add(){
             this.model.images.push({
+                key: new Date().getUTCMilliseconds().toString()
+            })
+
+            Vue.nextTick(() => {
+                if(!this.isDragAndDropInitialised) this.initDragAndDrop();
             })
         },
         del(index){
@@ -123,11 +129,21 @@ export default {
         getImageKey(image){
             if(image.id) return image.id;
 
-            return new Date().getUTCMilliseconds().toString()
+            return image.key
         },
         moveItem(from, to){
             this.model.images.splice(to, 0, this.model.images.splice(from, 1)[0])
-        }
+        },
+        initDragAndDrop: function(){
+            const self = this;
+            window.sortable(".gallery-sortable-container", {
+                items: ".gallery-sortable-item"
+            })[0].addEventListener("sortupdate", function (e) {
+                self.moveItem(e.detail.origin.index, e.detail.destination.index);
+            });
+            this.isDragAndDropInitialised = true
+
+        },
     },
     computed: {
         isEmpty: function () {
@@ -143,15 +159,13 @@ export default {
             }
         };
         
-        const self = this;
     
-        window.sortable(".gallery-sortable-container", {
-            items: ".gallery-sortable-item"
-        })[0].addEventListener("sortupdate", function (e) {
-            self.moveItem(e.detail.origin.index, e.detail.destination.index);
-        });
-
+        if(document.querySelector(".gallery-sortable-container")){
+            this.initDragAndDrop();
+        }
+        
     },
+    
     beforeMount(){
         if(this.model.images === null || this.model.images === undefined){
             this.model.images = []
