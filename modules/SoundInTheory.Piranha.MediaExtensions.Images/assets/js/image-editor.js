@@ -7309,7 +7309,11 @@ Vue.component("image-editor", {
       if (this.cropper) {
         var imageData = this.cropper.getImageData();
         var containerData = this.cropper.getContainerData();
-        this.cropper.zoomTo(containerData.width / imageData.naturalWidth - (1 - value));
+        if (imageData.aspectRatio >= 1) {
+          this.cropper.zoomTo(containerData.width / imageData.naturalWidth - (1 - value));
+        } else {
+          this.cropper.zoomTo(containerData.height / imageData.naturalHeight - (1 - value));
+        }
       }
     },
     getFieldSettings: function () {
@@ -7352,7 +7356,11 @@ Vue.component("image-editor", {
         } else {
           this.zoom = 1;
         }
-        if (fieldSettings.AspectRatio) {
+
+        //handle aspect ratio
+        if (fieldSettings.AspectRatios && fieldSettings.AspectRatios.length === fieldSettings.Crops.length) {
+          opts.aspectRatio = fieldSettings.AspectRatios.$values[this.cropTypes.indexOf(this.selectedCropType)];
+        } else if (fieldSettings.AspectRatio) {
           opts.aspectRatio = fieldSettings.AspectRatio;
         }
         if (fieldSettings.MinWidth) {
@@ -7393,5 +7401,5 @@ Vue.component("image-editor", {
       this.zoom = 1;
     }
   },
-  template: "\n<div class=\"image-editor\" :class=\"{ ready: isReady }\">\n    <div class=\"image\">\n        <template v-if=\"isSupported\">\n            <img class=\"d-block mx-auto mw-100\" :src=\"model.media.publicUrl\" ref=\"image\" />\n        </template>\n    </div>\n    <div class=\"controls\">\n        <div class=\"row align-items-center\">\n            <div class=\"col-sm-6\">\n                <vue-slider \n                    v-model=\"zoom\" \n                    contained=\"true\" \n                    :min=\".2\" \n                    :max=\"1\" \n                    :interval=\".01\" \n                    :tooltip-formatter=\"(val) => Math.round(val * 100) + '%'\"\n                ></vue-slider>\n            </div>\n            <div class=\"col-sm-4\">\n                <div class=\"input-group\">\n                    <label class=\"form-label mt-2 mr-2\">Select Crop</label>\n                    <select class=\"form-control\" name=\"crop\"  v-model=\"selectedCropType\" @change=\"reloadCropper()\">\n                        <option v-for=\"crop in cropTypes\" :value=\"crop\">{{crop}}</option>\n                    </select>\n                </div>\n            </div>\n            <div class=\"col-sm-2 text-right\">\n                <button class=\"btn btn-info btn-sm\" title=\"Clear crop\" @click.prevent=\"clear()\"><i class=\"fas fa-sync-alt\"></i></button>\n            </div>\n        </div>\n    </div>\n</div>\n"
+  template: "\n<div class=\"image-editor\" :class=\"{ ready: isReady }\">\n    <div class=\"image img-container\" >\n        <template v-if=\"isSupported\">\n            <img class=\"d-block mx-auto mw-100\" :src=\"model.media.publicUrl\" ref=\"image\" />\n        </template>\n    </div>\n    <div class=\"controls\">\n        <div class=\"row align-items-center\">\n            <div class=\"col-sm-6\">\n                <vue-slider \n                    v-model=\"zoom\" \n                    contained=\"true\" \n                    :min=\".2\" \n                    :max=\"1\" \n                    :interval=\".01\" \n                    :tooltip-formatter=\"(val) => Math.round(val * 100) + '%'\"\n                ></vue-slider>\n            </div>\n            <div class=\"col-sm-4\">\n                <div class=\"input-group\">\n                    <label class=\"form-label mt-2 mr-2\">Select Crop</label>\n                    <select class=\"form-control\" name=\"crop\"  v-model=\"selectedCropType\" @change=\"reloadCropper()\">\n                        <option v-for=\"crop in cropTypes\" :value=\"crop\">{{crop}}</option>\n                    </select>\n                </div>\n            </div>\n            <div class=\"col-sm-2 text-right\">\n                <button class=\"btn btn-info btn-sm\" title=\"Clear crop\" @click.prevent=\"clear()\"><i class=\"fas fa-sync-alt\"></i></button>\n            </div>\n        </div>\n    </div>\n</div>\n"
 });
