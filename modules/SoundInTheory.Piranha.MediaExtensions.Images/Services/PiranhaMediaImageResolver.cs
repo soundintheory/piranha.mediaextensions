@@ -36,7 +36,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
         {
             if (_media.PublicUrl.Contains('~'))
             {
-                return await _httpClient.GetStreamAsync(_context.Request.IsHttps ? "https://" : "http://" + _context.Request.Host + _media.PublicUrl.Replace("~", ""));
+                return await _httpClient.GetStreamAsync((_context.Request.IsHttps ? "https://" : "http://") + _context.Request.Host + _media.PublicUrl.Replace("~", ""));
             }
             
             return await _httpClient.GetStreamAsync(_media.PublicUrl);
