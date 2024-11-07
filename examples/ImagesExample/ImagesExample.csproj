@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\modules\SoundInTheory.Piranha.MediaExtensions.Images\SoundInTheory.Piranha.MediaExtensions.Images.csproj" />
+    <ProjectReference Include="..\..\modules\SoundInTheory.Piranha.MediaExtensions.Video\SoundInTheory.Piranha.MediaExtensions.Video.csproj" />
   </ItemGroup>
 
 </Project>

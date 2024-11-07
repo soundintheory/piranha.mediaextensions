@@ -1,0 +1,17 @@
+{
+  "assets/js/components/video-embed-field.vue": {
+    "file": "assets/js/_chunks/video-embed-field-0acdCxlj.js",
+    "name": "video-embed-field",
+    "src": "assets/js/components/video-embed-field.vue",
+    "isDynamicEntry": true
+  },
+  "assets/js/video-embed-field.js": {
+    "file": "assets/js/video-embed-field.js?v=C36Vzf2A",
+    "name": "assets/js/video-embed-field",
+    "src": "assets/js/video-embed-field.js",
+    "isEntry": true,
+    "dynamicImports": [
+      "assets/js/components/video-embed-field.vue"
+    ]
+  }
+}

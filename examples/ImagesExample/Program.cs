@@ -29,6 +29,7 @@ builder.AddPiranha(options =>
     options.UseMemoryCache();
 
     options.UseCroppedImageField();
+    options.UseVideoEmbedField();
     options.UseImageSharpForMedia((opts) =>
     {
         opts
@@ -92,6 +93,7 @@ app.UsePiranha(options =>
     EditorConfig.FromFile("editorconfig.json");
 
     options.UseCroppedImageField();
+    options.UseVideoEmbedField();
     options.UseImageSharpForMedia();
     options.UseGalleryField();
     options.UseManager();
