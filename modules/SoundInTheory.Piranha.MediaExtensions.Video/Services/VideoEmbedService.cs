@@ -8,5 +8,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Services
 {
     public class VideoEmbedService
     {
+
+         
     }
 }

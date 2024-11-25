@@ -27,7 +27,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Fields
 
         public string GetTitle()
         {
-            return "";
+            return "Video Embed";
         }
     }
 }

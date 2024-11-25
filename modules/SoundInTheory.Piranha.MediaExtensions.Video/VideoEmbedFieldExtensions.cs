@@ -6,9 +6,6 @@ using Piranha.AspNetCore;
 using SoundInTheory.Piranha.MediaExtensions.Video;
 using SoundInTheory.Piranha.MediaExtensions.Video.Fields;
 using SoundInTheory.Piranha.MediaExtensions.Video.Services;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Runtime.CompilerServices;
 
 public static class VideoEmbedFieldExtensions

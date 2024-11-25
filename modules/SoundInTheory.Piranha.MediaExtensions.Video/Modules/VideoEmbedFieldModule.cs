@@ -1,7 +1,8 @@
 ﻿using Piranha;
 using Piranha.Extend;
-using Piranha.Extend.Serializers;
 using Piranha.Security;
+using SoundInTheory.Piranha.Media.Video.Serializers;
+using SoundInTheory.Piranha.MediaExtensions.Video.Fields;
 
 namespace SoundInTheory.Piranha.MediaExtensions.Video
 {
@@ -50,7 +51,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video
                 App.Permissions["VideoEmbedField"].Add(permission);
             }
 
-            //App.Serializers.Register<VideoEmbedField>(new CroppedImageFieldSerializer());
+            App.Serializers.Register<VideoEmbedField>(new VideoEmbedFieldSerializer());
         }
     }
 }
