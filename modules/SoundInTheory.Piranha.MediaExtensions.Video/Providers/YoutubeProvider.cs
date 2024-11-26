@@ -22,7 +22,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Providers
                 var jsonResponse = JsonSerializer.Deserialize<OEmbedResponse>(await response.Content.ReadAsStringAsync());
 
                 // Deserialize the JSON response into the OEmbed class
-                return new VideoDetails(jsonResponse,"youtube");
+                return new VideoDetails(jsonResponse,ID, "youtube");
             }
         }
 

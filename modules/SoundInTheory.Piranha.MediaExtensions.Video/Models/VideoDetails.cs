@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
+﻿
+using Newtonsoft.Json;
 
 namespace SoundInTheory.Piranha.MediaExtensions.Video.Models
 {
@@ -11,24 +7,29 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Models
     {
         public VideoDetails() { }
 
-        public VideoDetails(OEmbedResponse resp, string providerName)
+        public VideoDetails(OEmbedResponse resp, string id, string providerName)
         {
             AuthorName = resp.AuthorName;
             Title = resp.Title;
             ThumbnailUrl = resp.ThumbnailUrl;
             ProviderName = providerName;
+            Id = id;
         }
 
-        [JsonPropertyName("title")]
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("title")]
         public string Title { get; set; }
 
-        [JsonPropertyName("author_name")]
+        [JsonProperty("author_name")]
         public string AuthorName { get; set; }
 
-        [JsonPropertyName("provider_name")]
+        [JsonProperty("provider_name")]
         public string ProviderName { get; set; }
 
-        [JsonPropertyName("thumbnail_url")]
+        [JsonProperty("thumbnail_url")]
         public string ThumbnailUrl { get; set; }
+
     }
 }
