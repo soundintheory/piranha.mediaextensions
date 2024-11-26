@@ -7,11 +7,18 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Providers
 {
     public class YoutubeProvider : IVideoProvider
     {
-        public async Task<VideoDetails> GetDetails(string ID)
+        const string PROVIDER_NAME = "youtube";
+
+        public string providerName()
+        {
+            return PROVIDER_NAME;
+        }
+
+        public async Task<VideoDetails> GetDetails(string videoId)
         {
             using (var httpClient = new HttpClient()) // Create an instance of HttpClient
             {
-                string url = $"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={ID}&format=json";
+                string url = $"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={videoId}&format=json";
 
                 HttpResponseMessage response = await httpClient.GetAsync(url);
                 if (!response.IsSuccessStatusCode)
@@ -22,7 +29,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Providers
                 var jsonResponse = JsonSerializer.Deserialize<OEmbedResponse>(await response.Content.ReadAsStringAsync());
 
                 // Deserialize the JSON response into the OEmbed class
-                return new VideoDetails(jsonResponse,ID, "youtube");
+                return new VideoDetails(jsonResponse, videoId, PROVIDER_NAME);
             }
         }
 
@@ -34,6 +41,11 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Providers
 
             // Return the matched group or null if not found
             return match.Success ? match.Groups[1].Value : null;
+        }
+
+        public string GetEmbedLink(string videoId)
+        {
+            return $"https://www.youtube.com/embed/{videoId}";
         }
     }
 }

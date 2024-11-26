@@ -7,11 +7,18 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Providers
 {
     public class VimeoProvider : IVideoProvider
     {
-        public async Task<VideoDetails> GetDetails(string ID)
+        const string PROVIDER_NAME = "vimeo";
+
+        public string providerName()
+        {
+            return PROVIDER_NAME;
+        }
+
+        public async Task<VideoDetails> GetDetails(string videoId)
         {
             using (var httpClient = new HttpClient()) // Create an instance of HttpClient
             {
-                string url = $"https://vimeo.com/api/oembed.json?url=https://vimeo.com/{ID}";
+                string url = $"https://vimeo.com/api/oembed.json?url=https://vimeo.com/{videoId}";
 
                 HttpResponseMessage response = await httpClient.GetAsync(url);
                 if (!response.IsSuccessStatusCode)
@@ -22,7 +29,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Providers
                 var jsonResponse = JsonSerializer.Deserialize<OEmbedResponse>(await response.Content.ReadAsStringAsync());
 
                 // Deserialize the JSON response into the OEmbed class
-                return new VideoDetails(jsonResponse, ID,"vimeo");
+                return new VideoDetails(jsonResponse, videoId, "vimeo");
             }
         }
 
@@ -40,6 +47,11 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Providers
 
             // Return null if no match is found
             return null;
+        }
+
+        public string GetEmbedLink(string videoId)
+        {
+            return $"https://player.vimeo.com/video/{videoId}";
         }
     }
 }
