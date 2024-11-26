@@ -15,6 +15,6 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Interface
 
         Task<VideoDetails> GetDetails(string videoId);
 
-        string GetEmbedLink(string videoId);
+        string GetIframeHtml(string videoId);
     }
 }

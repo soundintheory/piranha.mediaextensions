@@ -29,23 +29,38 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Providers
                 var jsonResponse = JsonSerializer.Deserialize<OEmbedResponse>(await response.Content.ReadAsStringAsync());
 
                 // Deserialize the JSON response into the OEmbed class
-                return new VideoDetails(jsonResponse, videoId, PROVIDER_NAME);
+                return new VideoDetails(jsonResponse, videoId, PROVIDER_NAME, this.GetIframeHtml(videoId));
             }
         }
 
         public string MatchAndReturnID(string input)
         {
-            // Regular expression to extract YouTube video ID
-            var regex = new Regex(@"^(?:.*(?:youtube\.com\/(?:.*[?&]v=|embed\/)|youtu\.be\/))?([a-zA-Z0-9_-]{11})$");
+            var regex = new Regex(@"^[a-zA-Z0-9_-]{11}$");
             var match = regex.Match(input);
+            if(match.Success)
+            {
+                return match.Groups[0].Value;
+            }
+
+            // Regular expression to extract YouTube video ID
+            regex = new Regex(@"(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})");
+            match = regex.Match(input);
 
             // Return the matched group or null if not found
             return match.Success ? match.Groups[1].Value : null;
         }
 
-        public string GetEmbedLink(string videoId)
+        public string GetIframeHtml(string videoId)
         {
-            return $"https://www.youtube.com/embed/{videoId}";
+            return $@"
+                    <iframe 
+                        src=""https://www.youtube.com/embed/{videoId}"" 
+                        width=""560"" 
+                        height=""315"" 
+                        frameborder=""0"" 
+                        allow=""accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"" 
+                        allowfullscreen>
+                    </iframe>";
         }
     }
 }

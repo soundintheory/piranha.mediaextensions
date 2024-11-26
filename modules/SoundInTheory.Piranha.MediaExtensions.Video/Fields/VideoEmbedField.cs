@@ -35,5 +35,15 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Fields
         /// </summary>
         public string Type { get; set; }
 
+        /// <summary>
+        /// The type of video embed, eg. "youtube" or "vimeo"
+        /// </summary>
+        public string ThumbnailUrl { get; set; }
+
+        /// <summary>
+        /// The type of video embed, eg. "youtube" or "vimeo"
+        /// </summary>
+        public string IframeHtml { get; set; }
+
     }
 }

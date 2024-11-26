@@ -29,7 +29,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Providers
                 var jsonResponse = JsonSerializer.Deserialize<OEmbedResponse>(await response.Content.ReadAsStringAsync());
 
                 // Deserialize the JSON response into the OEmbed class
-                return new VideoDetails(jsonResponse, videoId, "vimeo");
+                return new VideoDetails(jsonResponse, videoId, "vimeo", this.GetIframeHtml(videoId));
             }
         }
 
@@ -49,9 +49,17 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Providers
             return null;
         }
 
-        public string GetEmbedLink(string videoId)
+        public string GetIframeHtml(string videoId)
         {
-            return $"https://player.vimeo.com/video/{videoId}";
+            return $@"
+                    <iframe 
+                        src=""https://player.vimeo.com/video/{videoId}"" 
+                        width=""640"" 
+                        height=""360"" 
+                        frameborder=""0"" 
+                        allow=""autoplay; fullscreen; picture-in-picture"" 
+                        allowfullscreen>
+                    </iframe>";
         }
     }
 }

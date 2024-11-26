@@ -61,6 +61,10 @@ export default {
           throw new Error("Failed to fetch video details.");
         }
 
+         if (!response.ok) {
+          throw new Error("Failed to fetch video details.");
+        }
+
         this.model.videoInfo = await response.json();
           
       } catch (err) {
@@ -70,6 +74,9 @@ export default {
       }
     },
   },
+  mounted: function () {
+      this.onInputChange();
+  }
 };
 </script>
 

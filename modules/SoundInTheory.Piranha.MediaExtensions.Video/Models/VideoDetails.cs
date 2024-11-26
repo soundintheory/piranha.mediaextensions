@@ -7,13 +7,14 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Models
     {
         public VideoDetails() { }
 
-        public VideoDetails(OEmbedResponse resp, string id, string providerName)
+        public VideoDetails(OEmbedResponse resp, string id, string providerName, string iframeHtml)
         {
             AuthorName = resp.AuthorName;
             Title = resp.Title;
             ThumbnailUrl = resp.ThumbnailUrl;
             ProviderName = providerName;
             Id = id;
+            IframeHtml = iframeHtml;    
         }
 
         [JsonProperty("id")]
@@ -30,6 +31,9 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Models
 
         [JsonProperty("thumbnail_url")]
         public string ThumbnailUrl { get; set; }
+
+        [JsonProperty("iframe_html")]
+        public string IframeHtml { get; set; }
 
     }
 }
