@@ -1,9 +1,5 @@
-﻿using Piranha.Extend;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Newtonsoft.Json;
+using Piranha.Extend;
 
 namespace SoundInTheory.Piranha.MediaExtensions.Video.Fields
 {
@@ -25,21 +21,25 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Fields
 
     public class VideoInfoEmbedField
     {
+        [JsonProperty("id")]
         /// <summary>
         /// The video id that was parsed from the value
         /// </summary>
         public string Id { get; set; }
 
+        [JsonProperty("type")]
         /// <summary>
         /// The type of video embed, eg. "youtube" or "vimeo"
         /// </summary>
         public string Type { get; set; }
 
+        [JsonProperty("thumbnail_url")]
         /// <summary>
         /// The type of video embed, eg. "youtube" or "vimeo"
         /// </summary>
         public string ThumbnailUrl { get; set; }
 
+        [JsonProperty("iframe_html")]
         /// <summary>
         /// The type of video embed, eg. "youtube" or "vimeo"
         /// </summary>
