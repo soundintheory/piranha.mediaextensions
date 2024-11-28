@@ -3,6 +3,7 @@ using Piranha.Extend;
 using Piranha.Security;
 using SoundInTheory.Piranha.Media.Video.Serializers;
 using SoundInTheory.Piranha.MediaExtensions.Video.Fields;
+using SoundInTheory.Piranha.MediaExtensions.Video.Interface;
 
 namespace SoundInTheory.Piranha.MediaExtensions.Video
 {

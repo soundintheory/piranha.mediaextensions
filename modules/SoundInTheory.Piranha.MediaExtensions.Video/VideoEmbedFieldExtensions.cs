@@ -5,7 +5,8 @@ using Piranha;
 using Piranha.AspNetCore;
 using SoundInTheory.Piranha.MediaExtensions.Video;
 using SoundInTheory.Piranha.MediaExtensions.Video.Fields;
-using SoundInTheory.Piranha.MediaExtensions.Video.Services;
+using SoundInTheory.Piranha.MediaExtensions.Video.Interface;
+using SoundInTheory.Piranha.MediaExtensions.Video.Providers;
 using System.Runtime.CompilerServices;
 
 public static class VideoEmbedFieldExtensions
@@ -20,7 +21,8 @@ public static class VideoEmbedFieldExtensions
         // Add the Cropped ImageField module
         Piranha.App.Modules.Register<VideoEmbedFieldModule>();
 
-        services.AddScoped<VideoEmbedService>();
+        services.AddScoped<IVideoProvider,YoutubeProvider>();
+        services.AddScoped<IVideoProvider, VimeoProvider>();
 
         // Return the service collection
         return services;

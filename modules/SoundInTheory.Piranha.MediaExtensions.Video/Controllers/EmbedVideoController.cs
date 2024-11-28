@@ -12,9 +12,8 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Controllers
     public class EmbedVideoController : Controller
     {
         [Route("get-details")]
-        public async Task<VideoDetails> GetDetails(string input)
+        public async Task<VideoDetails> GetDetails([FromServices] IEnumerable<IVideoProvider> providers, string input)
         {
-            var providers = GetProviders();
             VideoDetails videoDetails = null;
 
             foreach (var prov in providers)
@@ -27,13 +26,6 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Controllers
             }
 
             return videoDetails;
-        }
-
-        private IEnumerable<IVideoProvider> GetProviders() {
-            var type = typeof(IVideoProvider);
-            return AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(s => s.GetTypes())
-                .Where(p => type.IsAssignableFrom(p) && p.Name != "IVideoProvider").Select(p => (IVideoProvider)Activator.CreateInstance(p));
         }
     }
 }

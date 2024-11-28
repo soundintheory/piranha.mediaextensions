@@ -9,7 +9,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Interface
 {
     public interface IVideoProvider
     {
-        string providerName();
+        string ProviderName();
 
         string MatchAndReturnID(string input);
 

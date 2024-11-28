@@ -9,7 +9,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Video.Providers
     {
         const string PROVIDER_NAME = "youtube";
 
-        public string providerName()
+        public string ProviderName()
         {
             return PROVIDER_NAME;
         }

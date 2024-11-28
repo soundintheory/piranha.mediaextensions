@@ -1,6 +1,6 @@
 {
   "assets/js/components/video-embed-field.vue": {
-    "file": "assets/js/_chunks/video-embed-field-HpNYQOtS.js",
+    "file": "assets/js/_chunks/video-embed-field-DLNSGtdy.js",
     "name": "video-embed-field",
     "src": "assets/js/components/video-embed-field.vue",
     "isDynamicEntry": true,
@@ -9,7 +9,7 @@
     ]
   },
   "assets/js/video-embed-field.js": {
-    "file": "assets/js/video-embed-field.js?v=BaOHlKNY",
+    "file": "assets/js/video-embed-field.js?v=CPryeANT",
     "name": "assets/js/video-embed-field",
     "src": "assets/js/video-embed-field.js",
     "isEntry": true,
