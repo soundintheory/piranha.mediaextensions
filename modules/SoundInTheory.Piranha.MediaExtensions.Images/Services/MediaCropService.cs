@@ -320,7 +320,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
         /// <param name="model">The model</param>
         private void RemoveFromCache(global::Piranha.Models.Media model)
         {
-            _cache?.Remove(model.Id.ToString());
+            _cache?.RemoveAsync(model.Id.ToString()).GetAwaiter().GetResult();
         }
     }
 }
