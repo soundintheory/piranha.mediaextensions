@@ -628,3 +628,10 @@
 #previewModal.has-image-editor .image-editor-nav-item {
   display: list-item;
 }
+
+.img-container {
+  width: 100%;
+}
+.img-container img {
+  max-width: 100%;
+}

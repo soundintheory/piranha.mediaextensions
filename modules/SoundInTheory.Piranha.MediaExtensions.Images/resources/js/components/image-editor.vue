@@ -1,6 +1,6 @@
 <template>
     <div class="image-editor" :class="{ ready: isReady }">
-        <div class="image">
+        <div class="image img-container" >
             <template v-if="isSupported">
                 <img class="d-block mx-auto mw-100" :src="model.media.publicUrl" ref="image" />
             </template>
@@ -136,7 +136,13 @@
                 if (this.cropper) {
                     var imageData = this.cropper.getImageData();
                     var containerData = this.cropper.getContainerData();
-                    this.cropper.zoomTo((containerData.width / imageData.naturalWidth) - (1 - value));
+
+                    if(imageData.aspectRatio >=1){
+                        this.cropper.zoomTo((containerData.width / imageData.naturalWidth) - (1 - value));
+                    }else{
+                        this.cropper.zoomTo((containerData.height / imageData.naturalHeight) - (1 - value));
+                    }
+
                 }
             },
             getFieldSettings: function() {
@@ -182,7 +188,11 @@
                         this.zoom = 1;
                     }
 
-                    if (fieldSettings.AspectRatio) {
+                    //handle aspect ratio
+                    if(fieldSettings.AspectRatios && fieldSettings.AspectRatios.length === fieldSettings.Crops.length){
+                        opts.aspectRatio = fieldSettings.AspectRatios.$values[this.cropTypes.indexOf(this.selectedCropType)]
+                    }
+                    else if (fieldSettings.AspectRatio) {
                         opts.aspectRatio = fieldSettings.AspectRatio;
                     }
 

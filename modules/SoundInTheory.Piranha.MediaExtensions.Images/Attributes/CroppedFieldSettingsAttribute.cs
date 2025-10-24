@@ -33,5 +33,10 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images
         /// The number of named crops we want. Leave blank for the default of 1
         /// </summary>
         public string[] Crops { get; set; } = Array.Empty<string>();
+
+        ///<summary>
+        /// The aspect ratios of the crops ordered relative to the named crops
+        /// </summary>
+        public double[] AspectRatios { get; set; } = Array.Empty<double>();
     }
 }

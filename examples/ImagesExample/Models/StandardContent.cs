@@ -14,7 +14,7 @@ namespace ImagesExample.Models
 
         public class ImagesRegion
         {
-            [Field, CroppedImageFieldSettings(AspectRatio = 16d / 9d, MinWidth = 100, MinHeight = 100, Crops = new string[] { "Default", "Second Crop" })]
+            [Field, CroppedImageFieldSettings(AspectRatios = new double[] { 16d / 9d , 1d / 1d }, MinWidth = 100, MinHeight = 100, Crops = new string[] { "Default", "Second Crop" })]
             public CroppedImageField TestImageFieldWithSettings { get; set; } 
             [Field]
             public CroppedImageField TestImageFieldWithoutSettings { get; set; }
