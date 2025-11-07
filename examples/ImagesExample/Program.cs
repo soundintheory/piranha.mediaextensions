@@ -6,9 +6,11 @@ using Piranha.Data.EF.SQLite;
 using Piranha.Manager.Editor;
 using SixLabors.ImageSharp.Web.DependencyInjection;
 using SixLabors.ImageSharp.Web.Providers;
+using SoundInTheory.Piranha.MediaExtensions.Images;
 using SoundInTheory.Piranha.MediaExtensions.Images.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 builder.AddPiranha(options =>
 {
@@ -46,7 +48,7 @@ builder.AddPiranha(options =>
             .AddProvider<RemoteImageProvider>();
     });
     options.UseGalleryField();
-
+    options.UseMediaManager();
 
     var connectionString = builder.Configuration.GetConnectionString("piranha");
     options.UseEF<SQLiteDb>(db => db.UseSqlite(connectionString));
@@ -69,6 +71,7 @@ builder.AddPiranha(options =>
     options.LoginUrl = "login";
      */
 });
+
 
 var app = builder.Build();
 
@@ -97,6 +100,7 @@ app.UsePiranha(options =>
     options.UseManager();
     options.UseTinyMCE();
     options.UseIdentity();
+    options.UseMediaManager();
 });
 
 app.Run();

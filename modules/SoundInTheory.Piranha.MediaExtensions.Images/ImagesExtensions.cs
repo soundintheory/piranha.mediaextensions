@@ -43,6 +43,13 @@ public static class ImagesExtensions
         return serviceBuilder;
     }
 
+    public static PiranhaServiceBuilder UseMediaManager(this PiranhaServiceBuilder serviceBuilder)
+    {
+        serviceBuilder.Services.AddMediaManager();
+
+        return serviceBuilder;
+    }
+
     public static PiranhaApplicationBuilder UseImageSharpForMedia(this PiranhaApplicationBuilder applicationBuilder)
     {
         applicationBuilder.Builder.UseImageSharp();
@@ -69,6 +76,13 @@ public static class ImagesExtensions
         return applicationBuilder;
     }
 
+    public static PiranhaApplicationBuilder UseMediaManager(this PiranhaApplicationBuilder applicationBuilder)
+    {
+        applicationBuilder.Builder.UseMediaManager();
+
+        return applicationBuilder;
+    }
+
     /// <summary>
     /// Adds the ImageField2 module.
     /// </summary>
@@ -90,6 +104,20 @@ public static class ImagesExtensions
     public static IServiceCollection AddGalleryField(this IServiceCollection services)
     {
         Piranha.App.Modules.Register<GalleryFieldModule>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddMediaManager(this IServiceCollection services)
+    {
+        Piranha.App.Modules.Register<MediaManagerModule>();
+
+        services.AddRazorPages(opts =>
+        {
+            opts.Conventions.Add(new MediaManagerRoutingConvention());
+        });
+
+        services.AddScoped<MediaManagerService>();
 
         return services;
     }
@@ -128,6 +156,20 @@ public static class ImagesExtensions
         App.Modules.Manager().Scripts.Add("~/manager/GalleryField/assets/js/gallery-field.js");
         App.Modules.Manager().Styles.Add("~/manager/GalleryField/assets/css/gallery-field.css");
 
+
+        return builder;
+    }
+
+    public static IApplicationBuilder UseMediaManager(this IApplicationBuilder builder)
+    {
+        builder.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = FileProvider,
+            RequestPath = "/manager/MediaManager/assets"
+        });
+
+        App.Modules.Manager().Partials.Add("Partial/_MediaManagerPickerModal");
+        App.Modules.Manager().Partials.Add("Partial/_MediaManagerMediaPicker");
 
         return builder;
     }

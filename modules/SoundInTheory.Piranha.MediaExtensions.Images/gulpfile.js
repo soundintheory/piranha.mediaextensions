@@ -103,6 +103,20 @@ var js = [
         ]
     },
     {
+        name: "soundintheory.piranha.media.js",
+        items: [
+            
+            "resources/js/soundintheory.piranha.media.js",
+            "resources/js/components/folder-item.vue"
+        ]
+    },
+    {
+        name: "soundintheory.piranha.mediapicker.js",
+        items: [
+            "resources/js/soundintheory.piranha.mediapicker.js"
+        ]
+    },
+    {
         name: "cropped-image-field.js",
         items: [
             "resources/js/image-field-preview.js",
