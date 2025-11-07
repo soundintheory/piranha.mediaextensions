@@ -93,4 +93,18 @@ foreach(var image in TestGalleryField.Images){
 }
 ```
 
+## Extended Media Manager
+
+Supports filtering and ordering on both mediapicker and media views. 
+
+```cs
+//In Piranha WebApplicationBuilder...
+options.UseMediaManager();
+//etc
+
+//In PiranhaApplicationBuilder
+options.UseMediaManager();
+//etc
+```
+
 Examples are provided in repo.
