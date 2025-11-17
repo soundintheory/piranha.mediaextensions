@@ -48,7 +48,10 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
             string path = context.Request.Path.Value;
             if (path is not null)
             {
-                Guid guid = Guid.Parse(path.Replace(_options.Value.RootName + "/", ""));
+                var splitPath = path.Replace(_options.Value.RootName + "/", "").Split("/");
+                var mediaId = splitPath[0];
+
+                Guid guid = Guid.Parse(mediaId);
                 var media = await piranha.Media.GetByIdAsync(guid);
 
                 return new PiranhaMediaImageResolver(media, context);
@@ -58,7 +61,6 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
             return null;
         }
 
-        public bool IsValidRequest(HttpContext context)
-            => true;
+        public bool IsValidRequest(HttpContext context) => true;
     }
 }

@@ -16,6 +16,11 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images
             {
                 model.Selectors.RemoveAt(0);
             }
+
+            if(model.RelativePath == "/Areas/Manager/Pages/MediaManager/Index.cshtml")
+            {
+                model.Selectors[0].AttributeRouteModel.Template = "manager/media/{folderId?}";
+            }
         }
     }
 }

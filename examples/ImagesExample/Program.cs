@@ -36,6 +36,7 @@ builder.AddPiranha(options =>
         opts
             .RemoveProvider<PhysicalFileSystemProvider>()
             .Configure<PiranhaMediaImageProviderOptions>(o => o.RootName = "/piranha-media")
+            .SetRequestParser<PiranhaMediaRequestParser>()
             .AddProvider<PiranhaMediaImageProvider>()
             .Configure<RemoteImageProviderOptions>(o =>
             {
