@@ -7,6 +7,7 @@ using Piranha.Manager.Editor;
 using SixLabors.ImageSharp.Web.DependencyInjection;
 using SixLabors.ImageSharp.Web.Providers;
 using SoundInTheory.Piranha.MediaExtensions.Images;
+using SoundInTheory.Piranha.MediaExtensions.Images.ImageSharpProcessors;
 using SoundInTheory.Piranha.MediaExtensions.Images.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,7 +47,8 @@ builder.AddPiranha(options =>
                     "upload.wikimedia.org"
                 };
             })
-            .AddProvider<RemoteImageProvider>();
+            .AddProvider<RemoteImageProvider>()
+            .AddProcessor<CropWebProcessor>();
     });
     options.UseGalleryField();
     options.UseMediaManager();
