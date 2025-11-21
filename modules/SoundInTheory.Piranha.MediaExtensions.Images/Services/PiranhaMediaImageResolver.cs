@@ -29,11 +29,14 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
 
         public Task<ImageMetadata> GetMetaDataAsync()
         {
+            if (_media == null) return null;
+
             return Task.FromResult(new ImageMetadata(_media.LastModified, _media.Size));
         }
 
         public async Task<Stream> OpenReadAsync()
         {
+
             if (_media.PublicUrl.Contains('~'))
             {
                 return await _httpClient.GetStreamAsync((_context.Request.IsHttps ? "https://" : "http://") + _context.Request.Host + _media.PublicUrl.Replace("~", ""));

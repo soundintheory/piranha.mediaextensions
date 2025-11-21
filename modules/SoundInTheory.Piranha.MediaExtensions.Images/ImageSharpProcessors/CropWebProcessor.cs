@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Web;
 using SixLabors.ImageSharp.Web.Commands;
@@ -21,13 +23,15 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.ImageSharpProcessors
         public const string CropY = "cropy";
         public const string CropWidth = "cropwidth";
         public const string CropHeight = "cropheight";
+        public const string BgColor = "bgcolor";
 
         private static readonly IEnumerable<string> CropCommands = new[]
         {
             CropX,
             CropY,
             CropWidth,
-            CropHeight
+            CropHeight,
+            BgColor
         };
 
         public IEnumerable<string> Commands { get; } = CropCommands;
@@ -40,14 +44,38 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.ImageSharpProcessors
             CultureInfo culture
         )
         {
-            var cropRectangle = GetCropRectangle(commands, parser, culture);
+            var hasCropRect = GetCropRectangle(commands, parser, culture);
 
-            if(cropRectangle != null) 
+            if (hasCropRect != null) 
             {
-                image.Image.Mutate(x => x.Crop(cropRectangle.Value));
+                var cropRect = hasCropRect.Value;
+                var ratio = (float)cropRect.Width / (float)cropRect.Height;
+
+                var cropExceedsBounds = cropRect.X < 0 || cropRect.Y < 0 || cropRect.Right > image.Image.Width || cropRect.Bottom > image.Image.Height;
+
+                if (cropExceedsBounds)
+                {
+                    using var copy = image.Image.Clone((x) => { });
+                    using var backgroundImage = new Image<Rgba32>(Configuration.Default, cropRect.Width, cropRect.Height, parser.ParseValue<Color>(commands.GetValueOrDefault(BgColor), culture));
+
+                    image.Image.Mutate(x =>
+                    {
+                        x.Resize(new ResizeOptions() { Size = new Size(cropRect.Width, cropRect.Height) });
+                        x.DrawImage(backgroundImage, new Point(0, 0), 1);
+                        x.DrawImage(copy, new Point(-cropRect.X, -cropRect.Y), 1);
+                    });
+
+                    return image;
+
+                }
+                else
+                {
+                    image.Image.Mutate(x => x.Crop(hasCropRect.Value));
+                }
             }
 
             return image;
+
         }
 
         internal static Rectangle? GetCropRectangle(
