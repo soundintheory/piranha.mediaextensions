@@ -1,3 +1,48 @@
+.gallery-field.gallery-dragover {
+  outline: 2px dashed #007bff;
+  outline-offset: -4px;
+}
+.gallery-field.gallery-dragover .gallery-drop-zone,
+.gallery-field.gallery-dragover .card-body {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.gallery-drop-zone {
+  cursor: pointer;
+  padding: 2rem;
+  text-align: center;
+  color: #6c757d;
+  transition: background-color ease-in-out 0.2s;
+}
+.gallery-drop-zone:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+.gallery-drop-zone i {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.gallery-drop-zone p {
+  margin: 0;
+}
+
+.gallery-uploading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 10;
+  border-radius: inherit;
+  color: #495057;
+  pointer-events: none;
+}
+
+.gallery-title-input {
+  font-size: 0.75rem;
+}
+
 .gallery-body {
   display: block;
 }

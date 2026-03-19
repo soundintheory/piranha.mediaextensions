@@ -1,14 +1,9 @@
-﻿using Piranha.Manager.Extend;
+using Piranha.Manager.Extend;
 using Piranha.Manager;
 using Piranha.Security;
 using Piranha;
-using SoundInTheory.Piranha.Media.Images.Serializers;
 using SoundInTheory.Piranha.MediaExtensions.Images.Fields;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Piranha.Extend;
 
 namespace SoundInTheory.Piranha.MediaExtensions.Images.Modules
@@ -58,6 +53,13 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Modules
                 App.Permissions["GalleryField"].Add(permission);
             }
 
+            // Register GalleryField in App.Fields here (during App.Init) rather than
+            // waiting for UseGalleryField(IApplicationBuilder) to be called later.
+            // This is necessary because ContentTypeBuilder.Build() is called immediately
+            // after App.Init in Program.cs — before options.UseGalleryField() runs.
+            // If the field is not registered when Build() scans the assembly, it throws
+            // a NoElementsException when looking up the field type.
+            App.Fields.Register<GalleryField>();
         }
     }
 }

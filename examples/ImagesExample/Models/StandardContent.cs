@@ -1,5 +1,6 @@
-﻿using Piranha.AttributeBuilder;
+using Piranha.AttributeBuilder;
 using Piranha.Extend;
+using Piranha.Extend.Fields;
 using Piranha.Models;
 using SoundInTheory.Piranha.Media.Images;
 using SoundInTheory.Piranha.MediaExtensions.Images;
@@ -14,12 +15,13 @@ namespace ImagesExample.Models
 
         public class ImagesRegion
         {
-            [Field, CroppedImageFieldSettings(AspectRatios = new double[] { 16d / 9d , 1d / 1d }, MinWidth = 100, MinHeight = 100, Crops = new string[] { "Default", "Second Crop" })]
-            public CroppedImageField TestImageFieldWithSettings { get; set; } 
+            [Field, CroppedImageFieldSettings(AspectRatios = new double[] { 16d / 9d, 1d / 1d }, MinWidth = 100, MinHeight = 100, Crops = new string[] { "Default", "Second Crop" })]
+            public CroppedImageField TestImageFieldWithSettings { get; set; }
             [Field]
             public CroppedImageField TestImageFieldWithoutSettings { get; set; }
 
             [Field]
+            [GalleryFieldSettings(UploadFolder = "event-gallery-images/{id}")]
             public GalleryField TestGalleryField { get; set; }
 
         }

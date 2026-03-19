@@ -2,116 +2,259 @@ Vue.component("gallery-field", {
   props: ["uid", "model", "meta"],
   data() {
     return {
-      selectedImageIndex: null,
-      isDragAndDropInitialised: false
+      isDragAndDropInitialised: false,
+      isDraggingOver: false
     };
   },
   methods: {
-    imageIsEmpty: function (image) {
-      return !image.id;
+    // =================================================================
+    // FILE INPUT / DRAG-DROP
+    // =================================================================
+
+    triggerFileInput() {
+      // Reset value first so selecting the same file again still fires change
+      this.$refs.fileInput.value = '';
+      this.$refs.fileInput.click();
     },
-    getUrl: function (image) {
-      console.info("image", image);
-      if (image.publicUrl) {
-        return piranha.utils.formatUrl(image.publicUrl);
-      } else {
-        return piranha.utils.formatUrl("~/manager/assets/img/empty-image.png");
+    onDragOver() {
+      this.isDraggingOver = true;
+    },
+    onDragLeave(e) {
+      // Only clear when the cursor leaves the component entirely,
+      // not when moving over a child element
+      if (!this.$el.contains(e.relatedTarget)) {
+        this.isDraggingOver = false;
       }
     },
-    select: function (image, index) {
-      piranha.mediapicker.openCurrentFolder(media => {
-        this.update(media, index);
-      }, "Image");
+    onDrop(e) {
+      this.isDraggingOver = false;
+      if (e.dataTransfer && e.dataTransfer.files.length > 0) {
+        this.addLocalPreviews(e.dataTransfer.files);
+      }
     },
-    remove: function (index) {
-      this.model.images[index] = {};
-      this.model.images = [...this.model.images];
+    onFileInputChange(e) {
+      if (e.target.files.length > 0) {
+        this.addLocalPreviews(e.target.files);
+      }
     },
-    update: function (media, index) {
-      if (media.type === "Image") {
-        this.model.images[index] = {
-          id: media.id,
-          folderId: media.folderId,
-          type: media.type,
-          filename: media.filename,
-          title: media.title,
-          contentType: media.contentType,
-          publicUrl: media.publicUrl
-        };
-        this.model.images = [...this.model.images];
+    // =================================================================
+    // LOCAL PREVIEWS — shown immediately, uploaded on save
+    //
+    // Images are not uploaded when added. Instead a local blob preview
+    // is displayed immediately and an upload closure is registered on
+    // the edit instance. When the user clicks Save, the save hook
+    // (installed in beforeMount) runs all pending closures sequentially
+    // before calling Piranha's original save method.
+    // =================================================================
 
-        // Tell parent that title has been updated
-        if (this.meta.notifyChange) {
-          this.$emit('update-title', {
-            uid: this.uid,
-            title: this.model.images[index].title != null ? this.model.images[index].title + ' (' + this.model.images[index].filename + ')' : this.model.images[index].filename
+    addLocalPreviews(files) {
+      const fileArray = Array.from(files);
+      for (const file of fileArray) {
+        const previewUrl = URL.createObjectURL(file);
+        const imageEntry = {
+          key: Date.now() + '-' + Math.random(),
+          previewUrl: previewUrl,
+          filename: file.name,
+          title: '',
+          pending: true,
+          uploading: false
+        };
+        this.model.images.push(imageEntry);
+        if (this._editInstance) {
+          const self = this;
+          this._editInstance._galleryPendingUploads.push({
+            execute: async () => {
+              // If the user removed this image before saving, skip it.
+              if (self.model.images.indexOf(imageEntry) === -1) {
+                URL.revokeObjectURL(previewUrl);
+                return;
+              }
+              imageEntry.uploading = true;
+              try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                // Use the UploadFolder from field settings, if configured.
+                // {id} is replaced with the current content item's ID.
+                let folderPath = self.meta && self.meta.settings && self.meta.settings.UploadFolder;
+                if (folderPath) {
+                  const contentId = piranha.pageedit && piranha.pageedit.id || piranha.postedit && piranha.postedit.id || piranha.contentedit && piranha.contentedit.id || '';
+                  folderPath = folderPath.replace(/\{id\}/gi, contentId);
+                  formData.append('folderPath', folderPath);
+                }
+                if (imageEntry.title) formData.append('title', imageEntry.title);
+                const headers = {};
+                headers[piranha.antiForgery.headerName] = piranha.utils.antiForgery();
+                const response = await fetch(piranha.baseUrl + 'manager/api/gallery/upload', {
+                  method: 'POST',
+                  headers: headers,
+                  body: formData
+                });
+                if (response.ok) {
+                  const media = await response.json();
+                  const currentIdx = self.model.images.indexOf(imageEntry);
+                  if (currentIdx !== -1) {
+                    self.model.images.splice(currentIdx, 1, media);
+                    self.model.images = [...self.model.images];
+                  }
+                } else {
+                  const errData = await response.json().catch(() => ({}));
+                  console.error('Gallery: upload failed for', file.name, response.status, errData);
+                  const currentIdx = self.model.images.indexOf(imageEntry);
+                  if (currentIdx !== -1) {
+                    self.model.images.splice(currentIdx, 1);
+                    self.model.images = [...self.model.images];
+                  }
+                }
+              } catch (err) {
+                console.error('Gallery: upload error for', file.name, err);
+                const currentIdx = self.model.images.indexOf(imageEntry);
+                if (currentIdx !== -1) {
+                  self.model.images.splice(currentIdx, 1);
+                  self.model.images = [...self.model.images];
+                }
+              } finally {
+                imageEntry.uploading = false;
+                URL.revokeObjectURL(previewUrl);
+              }
+            }
           });
         }
-      } else {
-        console.log("No image was selected");
       }
-    },
-    add() {
-      this.model.images.push({
-        key: new Date().getUTCMilliseconds().toString()
-      });
+      this.model.images = [...this.model.images];
       Vue.nextTick(() => {
-        if (!this.isDragAndDropInitialised) this.initDragAndDrop();
+        if (!this.isDragAndDropInitialised && document.querySelector('.gallery-sortable-container')) {
+          this.initDragAndDrop();
+        }
       });
     },
-    del(index) {
+    // =================================================================
+    // REMOVE
+    // =================================================================
+
+    remove(index) {
+      const image = this.model.images[index];
+      if (image.pending) {
+        // Local preview not yet uploaded — just revoke the object URL.
+        // The deferred upload closure checks indexOf and will skip it.
+        URL.revokeObjectURL(image.previewUrl);
+      } else if (image.id && this._editInstance) {
+        // Already saved to the media library — queue for deletion on save
+        this._editInstance._galleryPendingDeletions.push(image.id);
+      }
       this.model.images.splice(index, 1);
+      this.model.images = [...this.model.images];
     },
-    moveUp(index) {
-      if (index != 0) {
-        const replacement = this.model.images.splice(index, 1)[0];
-        this.model.images.splice(index - 1, 0, replacement);
+    // =================================================================
+    // TITLE UPDATE
+    // =================================================================
+
+    async updateTitle(image, title) {
+      image.title = title;
+      if (!image.pending && image.id) {
+        // Image is already in the media library — patch the title immediately.
+        // For pending images the title is passed with the upload at save time.
+        try {
+          await fetch(piranha.baseUrl + 'manager/api/gallery/media/' + image.id + '/title', {
+            method: 'PATCH',
+            headers: Object.assign({
+              'Content-Type': 'application/json'
+            }, piranha.utils.antiForgeryHeaders()),
+            body: JSON.stringify(title)
+          });
+        } catch (err) {
+          console.error('Gallery: failed to update title for', image.id, err);
+        }
       }
     },
-    moveDown(index) {
-      if (index + 1 !== this.model.images.length) {
-        const replacement = this.model.images.splice(index, 1)[0];
-        this.model.images.splice(index + 1, 0, replacement);
+    // =================================================================
+    // UTILITIES
+    // =================================================================
+
+    getUrl(image) {
+      if (image.previewUrl) {
+        return image.previewUrl;
       }
+      if (image.publicUrl) {
+        return piranha.utils.formatUrl(image.publicUrl);
+      }
+      return piranha.utils.formatUrl('~/manager/assets/img/empty-image.png');
     },
     getImageKey(image) {
-      if (image.id) return image.id;
-      return image.key;
+      return image.id || image.key;
     },
     moveItem(from, to) {
       this.model.images.splice(to, 0, this.model.images.splice(from, 1)[0]);
     },
-    initDragAndDrop: function () {
+    initDragAndDrop() {
       const self = this;
-      window.sortable(".gallery-sortable-container", {
-        items: ".gallery-sortable-item"
-      })[0].addEventListener("sortupdate", function (e) {
+      window.sortable('.gallery-sortable-container', {
+        items: '.gallery-sortable-item'
+      })[0].addEventListener('sortupdate', function (e) {
         self.moveItem(e.detail.origin.index, e.detail.destination.index);
       });
       this.isDragAndDropInitialised = true;
     }
   },
-  computed: {
-    isEmpty: function () {
-      return this.model.media == null;
-    }
-  },
-  mounted: function () {
-    this.model.getTitle = function () {
-      if (selectedImage.media != null) {
-        return this.model.media.title != null ? selectedImage.title + ' (' + selectedImage.filename + ')' : selectedImage.filename;
-      } else {
-        return "No image selected";
-      }
-    };
-    if (document.querySelector(".gallery-sortable-container")) {
+  mounted() {
+    if (this.model.images.length > 0 && document.querySelector('.gallery-sortable-container')) {
       this.initDragAndDrop();
     }
   },
   beforeMount() {
-    if (this.model.images === null || this.model.images === undefined) {
+    if (!this.model.images) {
       this.model.images = [];
     }
+
+    // =================================================================
+    // SAVE HOOK
+    //
+    // Wraps Piranha's save/saveDraft/saveUnpublish methods once per edit
+    // session (guarded by _galleryHooked so multiple gallery fields on the
+    // same page share a single hook).
+    //
+    // Order of operations on save:
+    //   1. Execute all pending uploads sequentially.
+    //   2. Delete any media removed from galleries.
+    //   3. Call Piranha's original save method.
+    // =================================================================
+
+    const editInstance = typeof piranha !== 'undefined' && (piranha.pageedit || piranha.postedit || piranha.contentedit);
+    if (editInstance && !editInstance._galleryHooked) {
+      editInstance._galleryHooked = true;
+      editInstance._galleryPendingUploads = [];
+      editInstance._galleryPendingDeletions = [];
+      const wrapSave = name => {
+        if (!editInstance[name]) return;
+        const original = editInstance[name].bind(editInstance);
+        editInstance[name] = async function () {
+          const uploads = editInstance._galleryPendingUploads.splice(0);
+
+          // Execute each upload in sequence to avoid race conditions
+          // in folder creation and concurrent model.images mutations.
+          for (const upload of uploads) {
+            await upload.execute();
+          }
+
+          // Delete any media removed from the gallery.
+          const toDelete = editInstance._galleryPendingDeletions.splice(0);
+          if (toDelete.length > 0) {
+            try {
+              await fetch(piranha.baseUrl + 'manager/api/media/delete', {
+                method: 'DELETE',
+                headers: piranha.utils.antiForgeryHeaders(),
+                body: JSON.stringify(toDelete)
+              });
+            } catch (err) {
+              console.error('Gallery: failed to delete media on save:', err);
+            }
+          }
+          return original();
+        };
+      };
+      ['save', 'saveDraft', 'saveUnpublish'].forEach(wrapSave);
+    }
+    this._editInstance = editInstance;
   },
-  template: "\n<div class=\"card\">\n    <div class=\"card-body\">\n        <div class=\"blocks\">\n            <div>\n                <div class=\"block block-group\" :id=\"uid\">\n                    <div class=\"block-header mb-2\">\n                        <div class=\"title\">\n                            <i class=\"fas fa-images\"></i>\n                            <strong>Gallery</strong>\n                        </div>\n                        <div class=\"actions\">\n                            <span class=\"btn btn-sm\" @click=\"add()\">\n                                <i class=\"fas fa-plus\"></i>\n                            </span>\n                        </div>\n                    </div>\n\n                    <div v-if=\"model.images.length === 0\" class=\"empty-info\">\n                        <p>{{ piranha.resources.texts.emptyAddAbove }}</p>\n                    </div>\n                    <div v-else class=\"container-fluid bg-white m-2\">\n                        <div class=\"row row-cols-3 align-items-center gallery-sortable-container\">\n                            <div class=\"block gallery-sortable-item m-0 col h-full h-100\" v-for=\"(image, index) in model.images\" v-bind:key=\"getImageKey(image)\">\n                                <div class=\"block-body has-media-picker rounded col text-center gallery-body\" >\n                                    <div class=\"gallery-body-cloaked\">\n                                        <div class=\"gallery-body-description\">\n                                            <div v-if=\"image.filename\" v:bind=\"image.filename\">{{ image.filename }}</div>\n                                            <div v-else>New Image</div>\n                                        </div>\n                                        <div class=\"gallery-body-actions-left\">\n                                            <button class=\"btn btn-primary btn-sm gallery-body-action\" v-on:click.prevent=\"select(image, index)\"><i v-if=\"imageIsEmpty(image)\" class=\"fas fa-plus\"></i><i v-else class=\"fas fa-pen\"></i></button>\n                                        </div>\n                                        <div class=\"gallery-body-actions-right\">\n                                            <button class=\"btn btn-secondary btn-sm gallery-body-action\" v-if=\"!imageIsEmpty(image)\" v-on:click.prevent=\"remove(index)\"><i class=\"fas fa-eraser\"></i></button>\n                                            <button class=\"btn btn-danger btn-sm gallery-body-action\" v-on:click.prevent=\"del(index)\"><i class=\"fas fa-trash\"></i></button>\n                                        </div>\n                                    </div>\n                                    <img class=\"rounded\" :src=\"getUrl(image)\"/>\n                                </div>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        </div>\n    </div>\n</div>\n"
+  template: "\n<div class=\"card gallery-field\"\n     @dragover.prevent=\"onDragOver\"\n     @dragleave=\"onDragLeave\"\n     @drop.prevent=\"onDrop\"\n     :class=\"{ 'gallery-dragover': isDraggingOver }\">\n    <input type=\"file\"\n           multiple\n           accept=\"image/*\"\n           ref=\"fileInput\"\n           style=\"display:none\"\n           @change=\"onFileInputChange\">\n    <div class=\"card-body\">\n        <div class=\"blocks\">\n            <div>\n                <div class=\"block block-group\" :id=\"uid\">\n                    <div class=\"block-header mb-2\">\n                        <div class=\"title\">\n                            <i class=\"fas fa-images\"></i>\n                            <strong>Gallery</strong>\n                        </div>\n                    </div>\n\n                    <div v-if=\"model.images.length === 0\"\n                         class=\"empty-info gallery-drop-zone\"\n                         @click=\"triggerFileInput\">\n                        <i class=\"fas fa-cloud-upload-alt fa-2x\"></i>\n                        <p>Click to add images or drag and drop files here</p>\n                    </div>\n\n                    <div v-else class=\"container-fluid bg-white m-2\">\n                        <div class=\"row row-cols-3 align-items-center gallery-sortable-container\">\n                            <div class=\"block gallery-sortable-item m-0 col h-100\"\n                                 v-for=\"(image, index) in model.images\"\n                                 :key=\"getImageKey(image)\">\n                                <div class=\"block-body has-media-picker rounded col text-center gallery-body\">\n                                    <div class=\"gallery-uploading-overlay\" v-if=\"image.uploading\">\n                                        <i class=\"fas fa-spinner fa-spin fa-2x\"></i>\n                                        <small class=\"mt-1\">Uploading Media</small>\n                                    </div>\n                                    <div class=\"gallery-body-cloaked\">\n                                        <div class=\"gallery-body-description\">\n                                            <div v-if=\"image.filename\">{{ image.filename }}</div>\n                                        </div>\n                                        <div class=\"gallery-body-actions-right\">\n                                            <button class=\"btn btn-danger btn-sm gallery-body-action\"\n                                                    @click.prevent=\"remove(index)\">\n                                                <i class=\"fas fa-trash\"></i>\n                                            </button>\n                                        </div>\n                                    </div>\n                                    <img class=\"rounded\" :src=\"getUrl(image)\"/>\n                                </div>\n                                <input type=\"text\"\n                                       class=\"form-control form-control-sm mt-1 gallery-title-input\"\n                                       placeholder=\"Image title\"\n                                       :value=\"image.title || ''\"\n                                       @change=\"updateTitle(image, $event.target.value)\"/>\n                            </div>\n                        </div>\n                        <div class=\"text-center mt-2 mb-1\">\n                            <button class=\"btn btn-sm btn-outline-secondary\" @click.prevent=\"triggerFileInput\">\n                                <i class=\"fas fa-plus\"></i> Add more images\n                            </button>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        </div>\n    </div>\n</div>\n"
 });
