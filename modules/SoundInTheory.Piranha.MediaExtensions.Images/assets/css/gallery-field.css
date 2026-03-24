@@ -43,6 +43,12 @@
   font-size: 0.75rem;
 }
 
+.gallery-description-input {
+  font-size: 0.75rem;
+  resize: vertical;
+  min-height: 50px;
+}
+
 .gallery-body {
   display: block;
 }

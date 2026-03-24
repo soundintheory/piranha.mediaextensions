@@ -21,7 +21,10 @@ namespace ImagesExample.Models
             public CroppedImageField TestImageFieldWithoutSettings { get; set; }
 
             [Field]
-            [GalleryFieldSettings(UploadFolder = "event-gallery-images/{id}")]
+            public StringField GalleryName { get; set; }
+
+            [Field]
+            [GalleryFieldSettings(SyncToMediaFolder = "event-gallery-images/{id}", CollectDescription = true, CollectAltText = true)]
             public GalleryField TestGalleryField { get; set; }
 
         }

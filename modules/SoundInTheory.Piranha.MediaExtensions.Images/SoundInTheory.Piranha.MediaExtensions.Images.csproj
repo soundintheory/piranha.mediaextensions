@@ -10,6 +10,7 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Nullable>enable</Nullable>
+    <LangVersion>12</LangVersion>
 	</PropertyGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'net7.0'">
 		<PackageReference Include="Piranha" Version="10.4.0" />

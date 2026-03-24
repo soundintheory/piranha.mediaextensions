@@ -8,6 +8,7 @@ using SixLabors.ImageSharp.Web.Providers;
 using SoundInTheory.Piranha.MediaExtensions.Images;
 using SoundInTheory.Piranha.MediaExtensions.Images.Fields;
 using SoundInTheory.Piranha.MediaExtensions.Images.Helpers;
+using SoundInTheory.Piranha.MediaExtensions.Images.Hooks;
 using SoundInTheory.Piranha.MediaExtensions.Images.Modules;
 using SoundInTheory.Piranha.MediaExtensions.Images.Services;
 using System;
@@ -105,6 +106,9 @@ public static class ImagesExtensions
     {
         Piranha.App.Modules.Register<GalleryFieldModule>();
 
+        services.AddSingleton<GallerySyncHooks>();
+        services.AddScoped<GalleryFolderSyncService>();
+
         return services;
     }
 
@@ -156,6 +160,10 @@ public static class ImagesExtensions
         App.Modules.Manager().Scripts.Add("~/manager/GalleryField/assets/js/gallery-field.js");
         App.Modules.Manager().Styles.Add("~/manager/GalleryField/assets/css/gallery-field.css");
 
+        var hooks = builder.ApplicationServices.GetRequiredService<GallerySyncHooks>();
+        App.Hooks.Pages.RegisterOnAfterSave(hooks.OnPageAfterSave);
+        App.Hooks.Posts.RegisterOnAfterSave(hooks.OnPostAfterSave);
+        App.Hooks.GenericContent.RegisterOnAfterSave(hooks.OnContentAfterSave);
 
         return builder;
     }

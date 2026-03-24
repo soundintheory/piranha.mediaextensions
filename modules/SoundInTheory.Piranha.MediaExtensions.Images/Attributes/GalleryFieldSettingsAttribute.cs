@@ -15,6 +15,21 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images
         /// which is replaced with the content item's ID at upload time.
         /// If not specified, images are uploaded to the media root.
         /// </summary>
-        public string UploadFolder { get; set; }
+        public string SyncToMediaFolder { get; set; }
+
+        /// <summary>
+        /// Whether to show the title input per image. Defaults to false.
+        /// </summary>
+        public bool CollectTitle { get; set; } = false;
+
+        /// <summary>
+        /// Whether to show the alt text input per image. Defaults to false.
+        /// </summary>
+        public bool CollectAltText { get; set; } = false;
+
+        /// <summary>
+        /// Whether to show the description textarea per image. Defaults to false.
+        /// </summary>
+        public bool CollectDescription { get; set; } = false;
     }
 }
