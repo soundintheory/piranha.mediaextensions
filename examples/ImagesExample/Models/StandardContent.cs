@@ -9,7 +9,7 @@ using SoundInTheory.Piranha.MediaExtensions.Images.Fields;
 namespace ImagesExample.Models
 {
     [ContentType(Title = "Example Content", UseExcerpt = false, UsePrimaryImage = false)]
-    [ContentGroup(Title = "Content")]
+    [ContentGroup(Title = "Content", Icon = "fas fa-box")]
     public class StandardContent : Content<StandardContent>
     {
 

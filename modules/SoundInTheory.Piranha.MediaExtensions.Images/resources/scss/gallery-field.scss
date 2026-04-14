@@ -9,6 +9,33 @@
             background-color: rgba(0, 123, 255, 0.05);
         }
     }
+
+    .row.gallery-sortable-container {
+        margin: 0 -7px;
+
+        > .col,
+        .gallery-placeholder {
+            padding: 0 7px 14px;
+        }
+    }
+
+    .block {
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .empty-info {
+        background: #fafafa;
+        margin: 0;
+    }
+}
+
+.gallery-placeholder {
+    .sortable-placeholder {
+        height: 100%;
+        min-height: 10rem;
+    }
 }
 
 .gallery-drop-zone {
@@ -56,36 +83,51 @@
     min-height: 50px;
 }
 
-.gallery-body{
-    display: block;
+.gallery-fields {
+    flex: 0;
+}
 
-    .gallery-body-actions-left{
+.gallery-image {
+    position: relative;
+}
+
+.gallery-body {
+    background: #f8f8f8;
+    flex: 1 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+
+    .gallery-body-actions-left {
         position: absolute;
-        top: 0;
-        left: 0;
+        z-index: 2;
+        top: 10px;
+        left: 10px;
     }
 
-    .gallery-body-action{
+    .gallery-body-action {
         border-radius: 50%;
         width: 1.75rem;
         height: 1.75rem;
         position: relative;
 
-        i{
+        i {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translateX(-50%) translateY(-50%)
         }
     }
-    
-    .gallery-body-actions-right{
+
+    .gallery-body-actions-right {
         position: absolute;
-        top: 0;
-        right: 0;
+        z-index: 2;
+        top: 10px;
+        right: 10px;
     }
 
-    .gallery-body-description{
+    .gallery-body-description {
         position: absolute;
         bottom: 0;
         left: 0;
@@ -97,20 +139,23 @@
         width: 100%;
         padding-top: 0.5rem;
         padding-bottom: 0.5rem;
-        
+        border-radius: .25rem;
     }
 
-    .gallery-body-cloaked{
+    .gallery-body-cloaked {
         opacity: 0;
         transition: opacity ease-in-out .2s;
     }
 
-    &:hover, &:focus-within{
-        &.has-media-picker{
-            .gallery-body-cloaked{
-                opacity: 1;
-            }
+    .sortable-dragging & {
+        cursor: grabbing;
+    }
+}
+
+.gallery-item {
+    &:hover, &:focus-within {
+        .gallery-body-cloaked {
+            opacity: 1;
         }
     }
-
 }

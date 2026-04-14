@@ -30,19 +30,37 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
                              && ((IDictionary<string, object>)(ExpandoObject)ro).TryGetValue(f.Id, out var fo)
                              && fo is GalleryField gf ? gf : null
                     }))
-                .Where(x => x.Field?.Images?.Count > 0)
+                .Where(x => x.Field?.ImageCount > 0)
                 .ToList();
 
             if (!galleryFields.Any()) return;
 
             foreach (var x in galleryFields)
             {
+                if (string.IsNullOrWhiteSpace(x.Template)) continue;
+
+                // TODO: Allow arbitrary tokens in the template that relate to fields on the parent content object
                 var targetPath = x.Template
                     .Replace("{id}", contentId.ToString(), StringComparison.OrdinalIgnoreCase);
 
                 var targetFolderId = await ResolveFolderPath(targetPath);
+                var existingMedia = await _api.Media.GetAllByFolderIdAsync(targetFolderId);
+                var galleryMedia = x.Field!.Images ?? new List<global::Piranha.Models.Media>();
 
-                foreach (var m in x.Field.Images.Where(m => m.FolderId != targetFolderId))
+                // If we have a target folder, delete any existing images not present in the gallery
+                if (targetFolderId.HasValue)
+                {
+                    foreach (var existingMediaItem in existingMedia)
+                    {
+                        if (!galleryMedia.Any(x => x.Id == existingMediaItem.Id))
+                        {
+                            await _api.Media.DeleteAsync(existingMediaItem.Id);
+                        }
+                    }
+                }
+
+                // Move the gallery images to the target folder
+                foreach (var m in galleryMedia.Where(m => m.FolderId != targetFolderId))
                 {
                     m.FolderId = targetFolderId;
                     await _api.Media.SaveAsync(m);

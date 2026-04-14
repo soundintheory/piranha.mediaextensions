@@ -1,5 +1,5 @@
 <template>
-    <div class="card gallery-field"
+    <div class="gallery-field"
          @dragover.prevent="onDragOver"
          @dragleave="onDragLeave"
          @drop.prevent="onDrop"
@@ -10,75 +10,63 @@
                ref="fileInput"
                style="display:none"
                @change="onFileInputChange">
-        <div class="card-body">
-            <div class="blocks">
-                <div>
-                    <div class="block block-group" :id="uid">
-                        <div class="block-header mb-2">
-                            <div class="title">
-                                <i class="fas fa-images"></i>
-                                <strong>Gallery</strong>
+        <div class="block block-group" :id="uid">
+            <!--div class="block-header mb-2">
+                <div class="title">
+                    <i class="fas fa-images"></i>
+                    <strong>Gallery</strong>
+                </div>
+            </div -->
+            <div class="row row-cols-3 gallery-sortable-container">
+                <div class="gallery-sortable-item col" v-for="(image, index) in model.images" :key="getImageKey(image)">
+                    <div class="gallery-item block m-0 h-100">
+                        <div class="has-media-picker text-center position-relative gallery-body">
+                            <div class="gallery-uploading-overlay" v-if="image.uploading">
+                                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                                <small class="mt-1">Uploading Media</small>
                             </div>
-                        </div>
-
-                        <div v-if="model.images.length === 0"
-                             class="empty-info gallery-drop-zone"
-                             @click="triggerFileInput">
-                            <i class="fas fa-cloud-upload-alt fa-2x"></i>
-                            <p>Click to add images or drag and drop files here</p>
-                        </div>
-
-                        <div v-else class="container-fluid bg-white m-2">
-                            <div class="row row-cols-3 align-items-center gallery-sortable-container">
-                                <div class="block gallery-sortable-item m-0 col h-100"
-                                     v-for="(image, index) in model.images"
-                                     :key="getImageKey(image)">
-                                    <div class="block-body has-media-picker rounded col text-center gallery-body">
-                                        <div class="gallery-uploading-overlay" v-if="image.uploading">
-                                            <i class="fas fa-spinner fa-spin fa-2x"></i>
-                                            <small class="mt-1">Uploading Media</small>
-                                        </div>
-                                        <div class="gallery-body-cloaked">
-                                            <div class="gallery-body-description">
-                                                <div v-if="image.filename">{{ image.filename }}</div>
-                                            </div>
-                                            <div class="gallery-body-actions-right">
-                                                <button class="btn btn-danger btn-sm gallery-body-action"
-                                                        @click.prevent="remove(index)">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <img class="rounded" :src="getUrl(image)"/>
-                                    </div>
-                                    <input v-if="collectTitle"
-                                           type="text"
-                                           class="form-control form-control-sm mt-1 gallery-title-input"
-                                           placeholder="Image title"
-                                           :value="image.title || ''"
-                                           @change="updateField(image, 'title', $event.target.value)"/>
-                                    <input v-if="collectAltText"
-                                           type="text"
-                                           class="form-control form-control-sm mt-1 gallery-title-input"
-                                           placeholder="Alt text"
-                                           :value="image.altText || ''"
-                                           @change="updateField(image, 'altText', $event.target.value)"/>
-                                    <textarea v-if="collectDescription"
-                                              class="form-control form-control-sm mt-1 gallery-description-input"
-                                              placeholder="Description"
-                                              :value="image.description || ''"
-                                              @change="updateField(image, 'description', $event.target.value)"></textarea>
-                                </div>
-                            </div>
-                            <div class="text-center mt-2 pb-4">
-                                <button class="btn btn-sm btn-outline-secondary" @click.prevent="triggerFileInput">
-                                    <i class="fas fa-plus"></i> Add More Images
+                            <div class="gallery-body-actions-right gallery-body-cloaked">
+                                <button class="btn btn-danger btn-sm gallery-body-action"
+                                        @click.prevent="remove(index)">
+                                    <i class="fas fa-trash"></i>
                                 </button>
                             </div>
+                            <div class="gallery-image">
+                                <img class="rounded" :src="getUrl(image)" />
+                                <div class="gallery-body-cloaked gallery-body-description">
+                                    <div v-if="image.filename">{{ image.filename }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-if="hasFields" class="gallery-fields">
+                            <input v-if="collectTitle"
+                                   type="text"
+                                   class="form-control form-control-sm mt-2 gallery-title-input"
+                                   placeholder="Image title"
+                                   :value="image.title || ''"
+                                   @change="updateField(image, 'title', $event.target.value)" />
+                            <input v-if="collectAltText"
+                                   type="text"
+                                   class="form-control form-control-sm mt-2 gallery-title-input"
+                                   placeholder="Alt text"
+                                   :value="image.altText || ''"
+                                   @change="updateField(image, 'altText', $event.target.value)" />
+                            <textarea v-if="collectDescription"
+                                      class="form-control form-control-sm mt-2 gallery-description-input"
+                                      placeholder="Description"
+                                      :value="image.description || ''"
+                                      @change="updateField(image, 'description', $event.target.value)"></textarea>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <div class="empty-info gallery-drop-zone"
+                 @click="triggerFileInput">
+                <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                <p>Click to add images or drag and drop files here</p>
+            </div>
+
         </div>
     </div>
 </template>
@@ -100,6 +88,9 @@ export default {
         },
         collectDescription() {
             return !!(this.meta && this.meta.settings && this.meta.settings.CollectDescription);
+        },
+        hasFields() {
+            return this.collectTitle || this.collectAltText || this.collectDescription;
         }
     },
     methods: {
@@ -188,10 +179,6 @@ export default {
                 const currentIdx = this.model.images.indexOf(imageEntry);
 
                 if (imageEntry.cancelled) {
-                    if (response.ok) {
-                        const media = await response.json();
-                        this.deleteMedia(media.id);
-                    }
                     return;
                 }
 
@@ -230,22 +217,11 @@ export default {
             const image = this.model.images[index];
             if (image.uploading) {
                 image.cancelled = true;
-            } else if (image.id) {
-                this.deleteMedia(image.id);
-            } else {
+            } else if (!image.id) {
                 URL.revokeObjectURL(image.previewUrl);
             }
             this.model.images.splice(index, 1);
             this.model.images = [...this.model.images];
-        },
-
-        deleteMedia(id) {
-            const headers = {};
-            headers[piranha.antiForgery.headerName] = piranha.utils.antiForgery();
-            fetch(piranha.baseUrl + 'manager/api/gallery/media/' + id, {
-                method: 'DELETE',
-                headers: headers
-            }).catch(err => console.error('Gallery: failed to delete media', id, err));
         },
 
         // =================================================================
@@ -292,8 +268,11 @@ export default {
         },
         initDragAndDrop() {
             const self = this;
+            console.log('woop');
             window.sortable('.gallery-sortable-container', {
-                items: '.gallery-sortable-item'
+                items: '.gallery-sortable-item',
+                placeholder: '<div><div class="sortable-placeholder"></div>',
+                placeholderClass: 'gallery-placeholder'
             })[0].addEventListener('sortupdate', function (e) {
                 self.moveItem(e.detail.origin.index, e.detail.destination.index);
             });

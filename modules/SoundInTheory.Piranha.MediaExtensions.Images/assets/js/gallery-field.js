@@ -15,6 +15,9 @@ Vue.component("gallery-field", {
     },
     collectDescription() {
       return !!(this.meta && this.meta.settings && this.meta.settings.CollectDescription);
+    },
+    hasFields() {
+      return this.collectTitle || this.collectAltText || this.collectDescription;
     }
   },
   methods: {
@@ -90,10 +93,6 @@ Vue.component("gallery-field", {
         });
         const currentIdx = this.model.images.indexOf(imageEntry);
         if (imageEntry.cancelled) {
-          if (response.ok) {
-            const media = await response.json();
-            this.deleteMedia(media.id);
-          }
           return;
         }
         if (response.ok) {
@@ -130,21 +129,11 @@ Vue.component("gallery-field", {
       const image = this.model.images[index];
       if (image.uploading) {
         image.cancelled = true;
-      } else if (image.id) {
-        this.deleteMedia(image.id);
-      } else {
+      } else if (!image.id) {
         URL.revokeObjectURL(image.previewUrl);
       }
       this.model.images.splice(index, 1);
       this.model.images = [...this.model.images];
-    },
-    deleteMedia(id) {
-      const headers = {};
-      headers[piranha.antiForgery.headerName] = piranha.utils.antiForgery();
-      fetch(piranha.baseUrl + 'manager/api/gallery/media/' + id, {
-        method: 'DELETE',
-        headers: headers
-      }).catch(err => console.error('Gallery: failed to delete media', id, err));
     },
     // =================================================================
     // METADATA UPDATE
@@ -191,8 +180,11 @@ Vue.component("gallery-field", {
     },
     initDragAndDrop() {
       const self = this;
+      console.log('woop');
       window.sortable('.gallery-sortable-container', {
-        items: '.gallery-sortable-item'
+        items: '.gallery-sortable-item',
+        placeholder: '<div><div class="sortable-placeholder"></div>',
+        placeholderClass: 'gallery-placeholder'
       })[0].addEventListener('sortupdate', function (e) {
         self.moveItem(e.detail.origin.index, e.detail.destination.index);
       });
@@ -209,5 +201,5 @@ Vue.component("gallery-field", {
       this.model.images = [];
     }
   },
-  template: "\n<div class=\"card gallery-field\"\n     @dragover.prevent=\"onDragOver\"\n     @dragleave=\"onDragLeave\"\n     @drop.prevent=\"onDrop\"\n     :class=\"{ 'gallery-dragover': isDraggingOver }\">\n    <input type=\"file\"\n           multiple\n           accept=\"image/*\"\n           ref=\"fileInput\"\n           style=\"display:none\"\n           @change=\"onFileInputChange\">\n    <div class=\"card-body\">\n        <div class=\"blocks\">\n            <div>\n                <div class=\"block block-group\" :id=\"uid\">\n                    <div class=\"block-header mb-2\">\n                        <div class=\"title\">\n                            <i class=\"fas fa-images\"></i>\n                            <strong>Gallery</strong>\n                        </div>\n                    </div>\n\n                    <div v-if=\"model.images.length === 0\"\n                         class=\"empty-info gallery-drop-zone\"\n                         @click=\"triggerFileInput\">\n                        <i class=\"fas fa-cloud-upload-alt fa-2x\"></i>\n                        <p>Click to add images or drag and drop files here</p>\n                    </div>\n\n                    <div v-else class=\"container-fluid bg-white m-2\">\n                        <div class=\"row row-cols-3 align-items-center gallery-sortable-container\">\n                            <div class=\"block gallery-sortable-item m-0 col h-100\"\n                                 v-for=\"(image, index) in model.images\"\n                                 :key=\"getImageKey(image)\">\n                                <div class=\"block-body has-media-picker rounded col text-center gallery-body\">\n                                    <div class=\"gallery-uploading-overlay\" v-if=\"image.uploading\">\n                                        <i class=\"fas fa-spinner fa-spin fa-2x\"></i>\n                                        <small class=\"mt-1\">Uploading Media</small>\n                                    </div>\n                                    <div class=\"gallery-body-cloaked\">\n                                        <div class=\"gallery-body-description\">\n                                            <div v-if=\"image.filename\">{{ image.filename }}</div>\n                                        </div>\n                                        <div class=\"gallery-body-actions-right\">\n                                            <button class=\"btn btn-danger btn-sm gallery-body-action\"\n                                                    @click.prevent=\"remove(index)\">\n                                                <i class=\"fas fa-trash\"></i>\n                                            </button>\n                                        </div>\n                                    </div>\n                                    <img class=\"rounded\" :src=\"getUrl(image)\"/>\n                                </div>\n                                <input v-if=\"collectTitle\"\n                                       type=\"text\"\n                                       class=\"form-control form-control-sm mt-1 gallery-title-input\"\n                                       placeholder=\"Image title\"\n                                       :value=\"image.title || ''\"\n                                       @change=\"updateField(image, 'title', $event.target.value)\"/>\n                                <input v-if=\"collectAltText\"\n                                       type=\"text\"\n                                       class=\"form-control form-control-sm mt-1 gallery-title-input\"\n                                       placeholder=\"Alt text\"\n                                       :value=\"image.altText || ''\"\n                                       @change=\"updateField(image, 'altText', $event.target.value)\"/>\n                                <textarea v-if=\"collectDescription\"\n                                          class=\"form-control form-control-sm mt-1 gallery-description-input\"\n                                          placeholder=\"Description\"\n                                          :value=\"image.description || ''\"\n                                          @change=\"updateField(image, 'description', $event.target.value)\"></textarea>\n                            </div>\n                        </div>\n                        <div class=\"text-center mt-2 pb-4\">\n                            <button class=\"btn btn-sm btn-outline-secondary\" @click.prevent=\"triggerFileInput\">\n                                <i class=\"fas fa-plus\"></i> Add More Images\n                            </button>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        </div>\n    </div>\n</div>\n"
+  template: "\n<div class=\"gallery-field\"\n     @dragover.prevent=\"onDragOver\"\n     @dragleave=\"onDragLeave\"\n     @drop.prevent=\"onDrop\"\n     :class=\"{ 'gallery-dragover': isDraggingOver }\">\n    <input type=\"file\"\n           multiple\n           accept=\"image/*\"\n           ref=\"fileInput\"\n           style=\"display:none\"\n           @change=\"onFileInputChange\">\n    <div class=\"block block-group\" :id=\"uid\">\n        <!--div class=\"block-header mb-2\">\n            <div class=\"title\">\n                <i class=\"fas fa-images\"></i>\n                <strong>Gallery</strong>\n            </div>\n        </div -->\n        <div class=\"row row-cols-3 gallery-sortable-container\">\n            <div class=\"gallery-sortable-item col\" v-for=\"(image, index) in model.images\" :key=\"getImageKey(image)\">\n                <div class=\"gallery-item block m-0 h-100\">\n                    <div class=\"has-media-picker text-center position-relative gallery-body\">\n                        <div class=\"gallery-uploading-overlay\" v-if=\"image.uploading\">\n                            <i class=\"fas fa-spinner fa-spin fa-2x\"></i>\n                            <small class=\"mt-1\">Uploading Media</small>\n                        </div>\n                        <div class=\"gallery-body-actions-right gallery-body-cloaked\">\n                            <button class=\"btn btn-danger btn-sm gallery-body-action\"\n                                    @click.prevent=\"remove(index)\">\n                                <i class=\"fas fa-trash\"></i>\n                            </button>\n                        </div>\n                        <div class=\"gallery-image\">\n                            <img class=\"rounded\" :src=\"getUrl(image)\" />\n                            <div class=\"gallery-body-cloaked gallery-body-description\">\n                                <div v-if=\"image.filename\">{{ image.filename }}</div>\n                            </div>\n                        </div>\n                    </div>\n                    <div v-if=\"hasFields\" class=\"gallery-fields\">\n                        <input v-if=\"collectTitle\"\n                               type=\"text\"\n                               class=\"form-control form-control-sm mt-2 gallery-title-input\"\n                               placeholder=\"Image title\"\n                               :value=\"image.title || ''\"\n                               @change=\"updateField(image, 'title', $event.target.value)\" />\n                        <input v-if=\"collectAltText\"\n                               type=\"text\"\n                               class=\"form-control form-control-sm mt-2 gallery-title-input\"\n                               placeholder=\"Alt text\"\n                               :value=\"image.altText || ''\"\n                               @change=\"updateField(image, 'altText', $event.target.value)\" />\n                        <textarea v-if=\"collectDescription\"\n                                  class=\"form-control form-control-sm mt-2 gallery-description-input\"\n                                  placeholder=\"Description\"\n                                  :value=\"image.description || ''\"\n                                  @change=\"updateField(image, 'description', $event.target.value)\"></textarea>\n                    </div>\n                </div>\n            </div>\n        </div>\n\n        <div class=\"empty-info gallery-drop-zone\"\n             @click=\"triggerFileInput\">\n            <i class=\"fas fa-cloud-upload-alt fa-2x\"></i>\n            <p>Click to add images or drag and drop files here</p>\n        </div>\n\n    </div>\n</div>\n"
 });
