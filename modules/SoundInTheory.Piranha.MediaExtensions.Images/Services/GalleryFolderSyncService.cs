@@ -45,7 +45,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
 
                 var targetFolderId = await ResolveFolderPath(targetPath);
                 var existingMedia = await _api.Media.GetAllByFolderIdAsync(targetFolderId);
-                var galleryMedia = x.Field!.Images ?? new List<global::Piranha.Models.Media>();
+                var galleryMedia = x.Field!.Images ?? new List<Media>();
 
                 // If we have a target folder, delete any existing images not present in the gallery
                 if (targetFolderId.HasValue)

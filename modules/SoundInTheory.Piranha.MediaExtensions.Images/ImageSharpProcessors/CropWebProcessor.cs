@@ -1,19 +1,12 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Web;
 using SixLabors.ImageSharp.Web.Commands;
 using SixLabors.ImageSharp.Web.Processors;
-using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace SoundInTheory.Piranha.MediaExtensions.Images.ImageSharpProcessors
 {
@@ -44,50 +37,51 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.ImageSharpProcessors
             CultureInfo culture
         )
         {
-            var hasCropRect = GetCropRectangle(commands, parser, culture);
+            var cropRect = GetCropRectangle(commands, parser, culture);
 
-            if (hasCropRect != null) 
+            if (cropRect != null)
             {
-                var cropRect = hasCropRect.Value;
-                var ratio = (float)cropRect.Width / (float)cropRect.Height;
+                var rect = cropRect.Value;
+                var exceedsBounds = rect.X < 0 || rect.Y < 0 || rect.Right > image.Image.Width || rect.Bottom > image.Image.Height;
 
-                var cropExceedsBounds = cropRect.X < 0 || cropRect.Y < 0 || cropRect.Right > image.Image.Width || cropRect.Bottom > image.Image.Height;
-
-                if (cropExceedsBounds)
+                if (exceedsBounds)
                 {
-                    using var copy = image.Image.Clone((x) => { });
-                    using var backgroundImage = new Image<Rgba32>(Configuration.Default, cropRect.Width, cropRect.Height, parser.ParseValue<Color>(commands.GetValueOrDefault(BgColor), culture));
+                    // Mirror MediaCropService.CropImage: create a background canvas and draw the original onto it.
+                    // Without this, the off-canvas region shows the resized original instead of the background colour.
+                    using var original = image.Image.Clone(x => { });
+
+                    var bgColor = commands.TryGetValue(BgColor, out string? bgColorStr)
+                        ? parser.ParseValue<Color>(bgColorStr, culture)
+                        : Color.White;
+
+                    using var canvas = new Image<Rgba32>(Configuration.Default, rect.Width, rect.Height, bgColor);
+                    canvas.Mutate(x => x.DrawImage(original, new Point(-rect.X, -rect.Y), 1f));
 
                     image.Image.Mutate(x =>
                     {
-                        x.Resize(new ResizeOptions() { Size = new Size(cropRect.Width, cropRect.Height) });
-                        x.DrawImage(backgroundImage, new Point(0, 0), 1);
-                        x.DrawImage(copy, new Point(-cropRect.X, -cropRect.Y), 1);
+                        x.Resize(new ResizeOptions { Size = new Size(rect.Width, rect.Height), Mode = ResizeMode.Stretch });
+                        x.DrawImage(canvas, new Point(0, 0), 1f);
                     });
-
-                    return image;
-
                 }
                 else
                 {
-                    image.Image.Mutate(x => x.Crop(hasCropRect.Value));
+                    image.Image.Mutate(x => x.Crop(rect));
                 }
             }
 
             return image;
-
         }
 
         internal static Rectangle? GetCropRectangle(
-            CommandCollection commands, 
-            CommandParser parser, 
+            CommandCollection commands,
+            CommandParser parser,
             CultureInfo cultureInfo
         )
         {
-            var hasCropX = commands.Any(x => x.Key == CropX);
-            var hasCropY = commands.Any(x => x.Key == CropY);
-            var hasCropWidth = commands.Any(x => x.Key == CropWidth);
-            var hasCropHeight = commands.Any(x => x.Key == CropHeight);
+            var hasCropX = commands.Contains(CropX);
+            var hasCropY = commands.Contains(CropY);
+            var hasCropWidth = commands.Contains(CropWidth);
+            var hasCropHeight = commands.Contains(CropHeight);
 
             if (!hasCropWidth || !hasCropHeight)
             {
@@ -96,10 +90,8 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.ImageSharpProcessors
 
             var cropX = hasCropX ? parser.ParseValue<int>(commands.GetValueOrDefault(CropX), cultureInfo) : 0;
             var cropY = hasCropY ? parser.ParseValue<int>(commands.GetValueOrDefault(CropY), cultureInfo) : 0;
-
             var cropWidth = parser.ParseValue<int>(commands.GetValueOrDefault(CropWidth), cultureInfo);
             var cropHeight = parser.ParseValue<int>(commands.GetValueOrDefault(CropHeight), cultureInfo);
-
 
             return new Rectangle(cropX, cropY, cropWidth, cropHeight);
         }

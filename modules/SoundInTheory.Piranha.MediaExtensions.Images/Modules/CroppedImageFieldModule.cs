@@ -4,7 +4,7 @@ using Piranha.Extend.Serializers;
 using Piranha.Manager;
 using Piranha.Manager.Extend;
 using Piranha.Security;
-using SoundInTheory.Piranha.Media.Images.Serializers;
+using SoundInTheory.Piranha.MediaExtensions.Images.Serializers;
 using SoundInTheory.Piranha.MediaExtensions.Images.Fields;
 using System;
 using System.Collections.Generic;

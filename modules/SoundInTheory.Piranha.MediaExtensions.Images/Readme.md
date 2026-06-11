@@ -45,7 +45,7 @@ options.UseImageSharpForMedia((opts) =>
         //PhysicalFileSystemProvider cannot be first in the list. You can add it later on.
         .RemoveProvider<PhysicalFileSystemProvider>()
 
-        .Configure<PiranhaMediaImageProviderOptions>(o => o.RootName = "/piranha-media")
+        .Configure<PiranhaMediaImageProviderOptions>(o => o.RootName = "/image")
         .AddProvider<PiranhaMediaImageProvider>()
 
         .Configure<RemoteImageProviderOptions>(o =>

@@ -2,7 +2,7 @@ using Piranha.AttributeBuilder;
 using Piranha.Extend;
 using Piranha.Extend.Fields;
 using Piranha.Models;
-using SoundInTheory.Piranha.Media.Images;
+using SoundInTheory.Piranha.MediaExtensions.Images;
 using SoundInTheory.Piranha.MediaExtensions.Images;
 using SoundInTheory.Piranha.MediaExtensions.Images.Fields;
 

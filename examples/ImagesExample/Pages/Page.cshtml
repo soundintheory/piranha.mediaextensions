@@ -3,12 +3,13 @@
 @{
     ViewData["Title"] = !string.IsNullOrEmpty(Model.Data.MetaTitle) ? Model.Data.MetaTitle : Model.Data.Title;
     var hasImage = Model.Data.PrimaryImage.HasValue;
+    var contents = await WebApp.Api.Content.GetAllAsync<StandardContent>();
 }
 @section head {
     @WebApp.MetaTags(Model.Data)
 }
 
-<header @(hasImage ? "class=has-image" : "") @(hasImage ? $"style=background-image:url({ @Url.Content(WebApp.Media.ResizeImage(Model.Data.PrimaryImage, 1920, 400)) })" : "")>
+<header image-bg="@Model.Data.PrimaryImage" w="1920" h="400" class="@(hasImage ? "has-image" : "")">
     <div class="dimmer"></div>
     <div class="container text-center">
         <h1>@Model.Data.Title</h1>
@@ -24,6 +25,19 @@
 </header>
 
 <main>
+    @foreach (var content in contents)
+    {
+        <div class="card">
+            <div class="card-body">
+                <h4>TestImageFieldWithSettings:</h4>
+                <img image="content.Images.TestImageFieldWithSettings" w="720" />
+                <h4>TestImageFieldWithSettings (Second Crop):</h4>
+                <img image="content.Images.TestImageFieldWithSettings" w="200" crop-name="Second Crop" />
+                <h4>TestImageFieldWithSettings BG:</h4>
+                <div image-bg="content.Images.TestImageFieldWithSettings" w="720" style="aspect-ratio:16/9; max-width:720px"></div>
+            </div>
+        </div>
+    }
     @foreach (var block in Model.Data.Blocks)
     {
         <div class="block @block.CssName()">

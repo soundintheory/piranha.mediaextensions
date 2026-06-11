@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using SoundInTheory.Piranha.MediaExtensions.Images.Model;
+using Piranha.Models;
 
 namespace SoundInTheory.Piranha.MediaExtensions.Images.Fields
 {
@@ -58,7 +59,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Fields
         /// Implicit operator for converting a media object to a field.
         /// </summary>
         /// <param name="media">The media object</param>
-        public static implicit operator CroppedImageField(global::Piranha.Models.Media media)
+        public static implicit operator CroppedImageField(Media media)
         {
             return new CroppedImageField { Id = media.Id };
         }

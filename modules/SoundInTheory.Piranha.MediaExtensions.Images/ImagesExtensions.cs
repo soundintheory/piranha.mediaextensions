@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using Piranha;
 using Piranha.AspNetCore;
 using SixLabors.ImageSharp.Web.DependencyInjection;
@@ -9,8 +10,10 @@ using SoundInTheory.Piranha.MediaExtensions.Images;
 using SoundInTheory.Piranha.MediaExtensions.Images.Fields;
 using SoundInTheory.Piranha.MediaExtensions.Images.Helpers;
 using SoundInTheory.Piranha.MediaExtensions.Images.Hooks;
+using SoundInTheory.Piranha.MediaExtensions.Images.ImageSharpProcessors;
 using SoundInTheory.Piranha.MediaExtensions.Images.Modules;
 using SoundInTheory.Piranha.MediaExtensions.Images.Services;
+using SoundInTheory.Piranha.MediaExtensions.Images.TagHelpers.Shared;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -36,12 +39,35 @@ public static class ImagesExtensions
         return serviceBuilder;
     }
 
-    public static PiranhaServiceBuilder UseImageSharpForMedia(this PiranhaServiceBuilder serviceBuilder, Action<IImageSharpBuilder> opts)
+    public static IImageSharpBuilder UseImageSharpForMedia(this PiranhaServiceBuilder serviceBuilder, Action<PiranhaMediaImageProviderOptions> opts = null)
     { 
         var imageSharpBuilder = serviceBuilder.Services.AddImageSharp();
-        opts(imageSharpBuilder);
 
-        return serviceBuilder;
+        imageSharpBuilder
+            .RemoveProvider<PhysicalFileSystemProvider>()
+            .Configure<PiranhaMediaImageProviderOptions>(o =>
+            {
+                o.RootName = "/image";
+                opts?.Invoke(o);
+            })
+            .SetRequestParser<PiranhaMediaRequestParser>()
+            .AddProvider<PiranhaMediaImageProvider>()
+            .AddProcessor<CropWebProcessor>();
+
+        return imageSharpBuilder;
+    }
+
+    public static IImageSharpBuilder AddRemoteImageProvider(this IImageSharpBuilder builder, Action<RemoteImageProviderOptions> opts = null)
+    {
+        builder
+            .AddProvider<RemoteImageProvider>()
+            .Configure<RemoteImageProviderOptions>(o =>
+            {
+                o.RootName = "/remote";
+                opts?.Invoke(o);
+            });
+
+        return builder;
     }
 
     public static PiranhaServiceBuilder UseMediaManager(this PiranhaServiceBuilder serviceBuilder)
@@ -97,6 +123,9 @@ public static class ImagesExtensions
         
         services.AddScoped<MediaCropService>();
         services.AddScoped<MediaCropHelper>();
+        services.AddScoped<IImageUrlProvider, DefaultImageUrlProvider>();
+        services.AddScoped<ImageUrlResolver>();
+        services.AddScoped<PictureImageContext>();
 
         // Return the service collection
         return services;

@@ -70,7 +70,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Helpers
         /// <param name="width">The width</param>
         /// <param name="height">The optional width</param>
         /// <returns>The public URL of the resized image</returns>
-        public string CropImage(global::Piranha.Models.Media image, CropSettings settings, int? width = null, int? height = null)
+        public string CropImage(Media image, CropSettings settings, int? width = null, int? height = null)
         {
             if (image == null || image.Id == Guid.Empty || image.Type != MediaType.Image)
                 return null;

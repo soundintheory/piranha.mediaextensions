@@ -492,3 +492,5 @@ Piranha.db-shm
 Piranha.db-wal
 /examples/ImagesExample/Piranha.db-shm
 /examples/ImagesExample/Piranha.db-wal
+
+**/.claude/*.local.*

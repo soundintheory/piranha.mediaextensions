@@ -10,9 +10,9 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
     {
 
         /// <summary>
-        /// Root path to match against (eg - /piranha-media/)
+        /// Root path to match against (default is "/image")
         /// </summary>
-        public string RootName { get; set; } = "/piranha-media";
+        public string RootName { get; set; } = "/image";
 
     }
 }

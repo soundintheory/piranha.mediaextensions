@@ -1,5 +1,6 @@
 using Piranha.Extend;
 using Piranha.Extend.Fields;
+using Piranha.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Fields
     [FieldType(Name = "Gallery Field", Shorthand = "GalleryField", Component = "gallery-field")]
     public class GalleryField : IField
     {
-        public List<global::Piranha.Models.Media> Images { get; set; }
+        public List<Media> Images { get; set; }
 
         public bool IsEmpty => Images == null || Images.Count == 0;
 

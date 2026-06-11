@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SoundInTheory.Piranha.MediaExtensions.Images.Fields;
 
-namespace SoundInTheory.Piranha.Media.Images.Serializers
+namespace SoundInTheory.Piranha.MediaExtensions.Images.Serializers
 {
     public class CroppedImageFieldSerializer : ISerializer
     {

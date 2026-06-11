@@ -72,7 +72,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
             return media != null ? await EnsureVersionAsync(media, settings, width, height).ConfigureAwait(false) : null;
         }
 
-        public async Task<string> EnsureVersionAsync(global::Piranha.Models.Media media, CropSettings settings, int? width, int? height = null)
+        public async Task<string> EnsureVersionAsync(Media media, CropSettings settings, int? width, int? height = null)
         {
             // If no processor is registered, return the original url
             if (_processor == null)
@@ -222,7 +222,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
         /// <param name="height">Optional requested height</param>
         /// <param name="extension">Optional requested extension</param>
         /// <returns>The name</returns>
-        private string GetResourceName(global::Piranha.Models.Media media, CropSettings settings, int? width = null, int? height = null, string extension = null)
+        private string GetResourceName(Media media, CropSettings settings, int? width = null, int? height = null, string extension = null)
         {
             var filename = new FileInfo(media.Filename);
             var sb = new StringBuilder(filename.Name.Replace(filename.Extension, ""));
@@ -270,14 +270,14 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
         /// <param name="height">Optional requested height</param>
         /// <param name="extension">Optional requested extension</param>
         /// <returns>The name</returns>
-        private string GetPublicUrl(global::Piranha.Models.Media media, int? width = null, int? height = null, string extension = null)
+        private string GetPublicUrl(Media media, int? width = null, int? height = null, string extension = null)
         {
             var name = GetResourceName(media, null, width, height, extension);
 
             return GetPublicUrl(media, name);
         }
 
-        private string GetPublicUrl(global::Piranha.Models.Media media, string name)
+        private string GetPublicUrl(Media media, string name)
         {
             using (var config = new Config(_api.Params))
             {
@@ -299,7 +299,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
         /// <param name="height">Optional requested height</param>
         /// <param name="extension">Optional requested extension</param>
         /// <returns>The name</returns>
-        private string GetPublicUrl(global::Piranha.Models.Media media, CropSettings settings, int? width = null, int? height = null, string extension = null)
+        private string GetPublicUrl(Media media, CropSettings settings, int? width = null, int? height = null, string extension = null)
         {
             var name = GetResourceName(media, settings, width, height, extension);
 
@@ -319,7 +319,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
         /// Removes the given model from cache.
         /// </summary>
         /// <param name="model">The model</param>
-        private void RemoveFromCache(global::Piranha.Models.Media model)
+        private void RemoveFromCache(Media model)
         {
             _cache.RemoveKeyAsync(model.Id.ToString()).GetAwaiter().GetResult();
         }

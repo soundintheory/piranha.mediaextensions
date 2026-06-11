@@ -14,35 +14,22 @@ using System.Threading.Tasks;
 
 namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
 {
-    public class PiranhaMediaImageResolver : IImageResolver
+    public class PiranhaMediaImageResolver(IStorage storage, Media media) : IImageResolver
     {
-        private readonly global::Piranha.Models.Media _media;
-        private readonly HttpClient _httpClient;
-        private readonly HttpContext _context;
-
-        public PiranhaMediaImageResolver(global::Piranha.Models.Media media, HttpContext context)
-        {
-            _media = media;
-            _context = context;
-            _httpClient = new HttpClient();
-        }
-
         public Task<ImageMetadata> GetMetaDataAsync()
         {
-            if (_media == null) return null;
-
-            return Task.FromResult(new ImageMetadata(_media.LastModified, _media.Size));
+            return Task.FromResult(new ImageMetadata(media.LastModified, media.Size));
         }
 
         public async Task<Stream> OpenReadAsync()
         {
+            using var session = await storage.OpenAsync().ConfigureAwait(false);
+            var stream = new MemoryStream();
 
-            if (_media.PublicUrl.Contains('~'))
-            {
-                return await _httpClient.GetStreamAsync((_context.Request.IsHttps ? "https://" : "http://") + _context.Request.Host + _media.PublicUrl.Replace("~", ""));
-            }
-            
-            return await _httpClient.GetStreamAsync(_media.PublicUrl);
+            var success = await session.GetAsync(media, media.Filename, stream).ConfigureAwait(false);
+            stream.Seek(0, SeekOrigin.Begin);
+
+            return stream;
         }
     }
 }

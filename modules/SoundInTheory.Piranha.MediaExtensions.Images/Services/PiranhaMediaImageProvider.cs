@@ -14,49 +14,36 @@ using System.Threading.Tasks;
 
 namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
 {
-    public class PiranhaMediaImageProvider : IImageProvider
+    public class PiranhaMediaImageProvider(IStorage storage, IOptions<PiranhaMediaImageProviderOptions> options) : IImageProvider
     {
-        private readonly FormatUtilities _formatUtilities;
-        private readonly IOptions<PiranhaMediaImageProviderOptions> _options;
-
-        public PiranhaMediaImageProvider(FormatUtilities formatUtilities, IOptions<PiranhaMediaImageProviderOptions> options)
-        {
-            _formatUtilities = formatUtilities;
-            _options = options;
-        }
-
-
         public ProcessingBehavior ProcessingBehavior => ProcessingBehavior.All;
 
         private Func<HttpContext, bool> _match;
         public Func<HttpContext, bool> Match
         {
-            get
-            {
-                return ctx =>
-                {
-                    return ctx.Request.Path.StartsWithSegments(this._options.Value.RootName, StringComparison.InvariantCultureIgnoreCase);
-                };
-            }
-            set { _match = value; }
+            get => _match ?? DefaultMatcher;
+            set => _match = value;
+        }
+
+        private bool DefaultMatcher(HttpContext ctx)
+        {
+            return ctx.Request.Path.StartsWithSegments(options.Value.RootName, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public async Task<IImageResolver> GetAsync(HttpContext context)
         {
             var piranha = context.RequestServices.GetService<IApi>();
+            var path = context.Request.Path.Value;
 
-            string path = context.Request.Path.Value;
-            if (path is not null)
+            if (path is not null && Guid.TryParse(path.Replace(options.Value.RootName + "/", ""), out var guid))
             {
-                var splitPath = path.Replace(_options.Value.RootName + "/", "").Split("/");
-                var mediaId = splitPath[0];
-
-                Guid guid = Guid.Parse(mediaId);
                 var media = await piranha.Media.GetByIdAsync(guid);
 
-                return new PiranhaMediaImageResolver(media, context);
+                if (media != null)
+                {
+                    return new PiranhaMediaImageResolver(storage, media);
+                }
             }
-
 
             return null;
         }

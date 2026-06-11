@@ -32,24 +32,15 @@ builder.AddPiranha(options =>
     options.UseMemoryCache();
 
     options.UseCroppedImageField();
-    options.UseImageSharpForMedia((opts) =>
-    {
-        opts
-            .RemoveProvider<PhysicalFileSystemProvider>()
-            .Configure<PiranhaMediaImageProviderOptions>(o => o.RootName = "/piranha-media")
-            .SetRequestParser<PiranhaMediaRequestParser>()
-            .AddProvider<PiranhaMediaImageProvider>()
-            .Configure<RemoteImageProviderOptions>(o =>
-            {
-                o.RootName = "/remote";
-                o.WhiteList = new List<string>()
-                {
-                    "upload.wikimedia.org"
-                };
-            })
-            .AddProvider<RemoteImageProvider>()
-            .AddProcessor<CropWebProcessor>();
-    });
+
+    options.UseImageSharpForMedia()
+        .AddRemoteImageProvider(o =>
+        {
+            o.WhiteList = [
+                "upload.wikimedia.org"
+            ];
+        });
+
     options.UseGalleryField();
     options.UseMediaManager();
 
