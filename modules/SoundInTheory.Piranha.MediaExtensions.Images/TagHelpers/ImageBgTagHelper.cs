@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using SoundInTheory.Piranha.MediaExtensions.Images.Model;
 using SoundInTheory.Piranha.MediaExtensions.Images.TagHelpers.Shared;
 
 namespace SoundInTheory.Piranha.MediaExtensions.Images.TagHelpers;
@@ -8,7 +9,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.TagHelpers;
 [HtmlTargetElement(Attributes = "image-bg")]
 public class ImageBgTagHelper : TagHelper
 {
-    private readonly ImageUrlResolver _resolver;
+    private readonly ImageResolver _resolver;
 
     [ViewContext]
     [HtmlAttributeNotBound]
@@ -29,14 +30,24 @@ public class ImageBgTagHelper : TagHelper
     [HtmlAttributeName("image-fallback")]
     public string? ImageFallback { get; set; }
 
-    public ImageBgTagHelper(ImageUrlResolver resolver)
+    [HtmlAttributeName("params")]
+    public string? Params { get; set; }
+
+    public ImageBgTagHelper(ImageResolver resolver)
     {
         _resolver = resolver;
     }
 
     public override void Process(TagHelperContext context, TagHelperOutput output)
     {
-        var url = _resolver.Resolve(ImageBg, W, H, CropName, ViewContext);
+        var imageContext = new ImageContext
+        {
+            Width = W,
+            Height = H,
+            CropName = CropName,
+            Params = QueryParamHelper.Parse(Params)
+        };
+        var url = _resolver.Resolve(ImageBg, imageContext, ViewContext)?.Url;
 
         if (url == null)
         {

@@ -1,39 +1,47 @@
+using System.Collections.Generic;
 using Piranha.AspNetCore.Services;
 using Piranha.Extend.Blocks;
 using Piranha.Extend.Fields;
 using Piranha.Models;
 using SoundInTheory.Piranha.MediaExtensions.Images.Fields;
 using SoundInTheory.Piranha.MediaExtensions.Images.Helpers;
+using SoundInTheory.Piranha.MediaExtensions.Images.Model;
 
 namespace SoundInTheory.Piranha.MediaExtensions.Images.Services;
 
-public class DefaultImageUrlProvider : IImageUrlProvider
+public class DefaultImageDataProvider : IImageDataProvider
 {
     private readonly IApplicationService _webApp;
     private readonly MediaCropHelper _imageCrop;
 
-    public DefaultImageUrlProvider(IApplicationService webApp, MediaCropHelper imageCrop)
+    public DefaultImageDataProvider(IApplicationService webApp, MediaCropHelper imageCrop)
     {
         _webApp = webApp;
         _imageCrop = imageCrop;
     }
 
-    public string? Resolve(object? image, int? width, int? height, string? cropName)
+    public ImageData? Resolve(object? image, ImageContext context)
     {
+        if (image == null) return null;
+
+        var width = context.Width;
+        var height = context.Height;
+        var cropName = context.CropName;
+
         if (image is ImageField imageField && imageField.Id.HasValue && imageField.Media == null)
         {
             imageField.Init(_webApp.Api).GetAwaiter().GetResult();
         }
 
-        return image switch
+        var url = image switch
         {
             CroppedImageField cropped when cropped.HasValue && !string.IsNullOrEmpty(cropName) =>
-                width.HasValue || height.HasValue
+                (width.HasValue || height.HasValue)
                     ? _imageCrop.CropImage(cropped, cropName, width, height)
                     : cropped.Media?.PublicUrl,
 
             CroppedImageField cropped when cropped.HasValue =>
-                width.HasValue || height.HasValue
+                (width.HasValue || height.HasValue)
                     ? _imageCrop.CropImage(cropped, width, height)
                     : cropped.Media?.PublicUrl,
 
@@ -53,6 +61,30 @@ public class DefaultImageUrlProvider : IImageUrlProvider
                     : block.Body?.Media?.PublicUrl,
 
             _ => null
+        };
+
+        if (url == null) return null;
+
+        return new ImageData
+        {
+            Url = url,
+            AltText = image switch
+            {
+                CroppedImageField cropped => cropped.Media?.AltText,
+                ImageField imgField => imgField.Media?.AltText,
+                Media media => media.AltText,
+                ImageBlock block => block.Body?.Media?.AltText,
+                _ => null
+            },
+            Title = image switch
+            {
+                CroppedImageField cropped => cropped.Media?.Title,
+                ImageField imgField => imgField.Media?.Title,
+                Media media => media.Title,
+                ImageBlock block => block.Body?.Media?.Title,
+                _ => null
+            },
+            Params = new Dictionary<string, string?>(context.Params)
         };
     }
 }

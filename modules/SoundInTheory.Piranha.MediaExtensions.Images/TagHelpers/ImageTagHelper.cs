@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
-using SixLabors.ImageSharp.Web.Resolvers;
+using SoundInTheory.Piranha.MediaExtensions.Images.Model;
 using SoundInTheory.Piranha.MediaExtensions.Images.TagHelpers.Shared;
 
 namespace SoundInTheory.Piranha.MediaExtensions.Images.TagHelpers;
@@ -11,7 +11,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.TagHelpers;
 [HtmlTargetElement("img", Attributes = "h")]
 public class ImageTagHelper : TagHelper
 {
-    private readonly ImageUrlResolver _resolver;
+    private readonly ImageResolver _resolver;
     private readonly PictureImageContext _pictureContext;
 
     [ViewContext]
@@ -36,7 +36,10 @@ public class ImageTagHelper : TagHelper
     [HtmlAttributeName("lazy")]
     public bool Lazy { get; set; }
 
-    public ImageTagHelper(ImageUrlResolver resolver, PictureImageContext pictureContext)
+    [HtmlAttributeName("params")]
+    public string? Params { get; set; }
+
+    public ImageTagHelper(ImageResolver resolver, PictureImageContext pictureContext)
     {
         _resolver = resolver;
         _pictureContext = pictureContext;
@@ -45,7 +48,15 @@ public class ImageTagHelper : TagHelper
     public override void Process(TagHelperContext context, TagHelperOutput output)
     {
         var image = Image ?? _pictureContext.CurrentImage;
-        var src = _resolver.Resolve(image, W, H, CropName, ViewContext);
+        var imageContext = new ImageContext
+        {
+            Width = W,
+            Height = H,
+            CropName = CropName,
+            Params = QueryParamHelper.Parse(Params)
+        };
+        var data = _resolver.Resolve(image, imageContext, ViewContext);
+        var src = data?.Url;
 
         if (src == null)
         {
@@ -66,18 +77,21 @@ public class ImageTagHelper : TagHelper
         }
         else
         {
-            var altText = ImageUrlResolver.GetAltText(image);
+            var altText = data?.AltText;
             if (!string.IsNullOrEmpty(altText))
                 output.Attributes.SetAttribute("alt", altText);
         }
 
         if (!context.AllAttributes.ContainsName("title"))
         {
-            var title = ImageUrlResolver.GetTitle(image);
+            var title = data?.Title;
             if (!string.IsNullOrEmpty(title))
                 output.Attributes.SetAttribute("title", title);
         }
 
-        output.Attributes.SetAttribute("src", src);
+        if (Lazy)
+            output.Attributes.SetAttribute("data-src", src);
+        else
+            output.Attributes.SetAttribute("src", src);
     }
 }

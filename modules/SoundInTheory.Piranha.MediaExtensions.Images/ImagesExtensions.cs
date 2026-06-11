@@ -123,8 +123,8 @@ public static class ImagesExtensions
         
         services.AddScoped<MediaCropService>();
         services.AddScoped<MediaCropHelper>();
-        services.AddScoped<IImageUrlProvider, DefaultImageUrlProvider>();
-        services.AddScoped<ImageUrlResolver>();
+        services.AddScoped<IImageDataProvider, DefaultImageDataProvider>();
+        services.AddScoped<ImageResolver>();
         services.AddScoped<PictureImageContext>();
 
         // Return the service collection

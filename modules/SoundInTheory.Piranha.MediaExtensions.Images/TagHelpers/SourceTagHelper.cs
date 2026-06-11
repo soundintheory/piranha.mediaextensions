@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using SoundInTheory.Piranha.MediaExtensions.Images.Model;
 using SoundInTheory.Piranha.MediaExtensions.Images.TagHelpers.Shared;
 
 namespace SoundInTheory.Piranha.MediaExtensions.Images.TagHelpers;
@@ -10,7 +11,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.TagHelpers;
 [HtmlTargetElement("source", Attributes = "h")]
 public class SourceTagHelper : TagHelper
 {
-    private readonly ImageUrlResolver _resolver;
+    private readonly ImageResolver _resolver;
     private readonly PictureImageContext _pictureContext;
 
     [ViewContext]
@@ -35,7 +36,10 @@ public class SourceTagHelper : TagHelper
     [HtmlAttributeName("max-width")]
     public int? MaxWidth { get; set; }
 
-    public SourceTagHelper(ImageUrlResolver resolver, PictureImageContext pictureContext)
+    [HtmlAttributeName("params")]
+    public string? Params { get; set; }
+
+    public SourceTagHelper(ImageResolver resolver, PictureImageContext pictureContext)
     {
         _resolver = resolver;
         _pictureContext = pictureContext;
@@ -44,7 +48,14 @@ public class SourceTagHelper : TagHelper
     public override void Process(TagHelperContext context, TagHelperOutput output)
     {
         var image = Image ?? _pictureContext.CurrentImage;
-        var src = _resolver.Resolve(image, W, H, CropName, ViewContext);
+        var imageContext = new ImageContext
+        {
+            Width = W,
+            Height = H,
+            CropName = CropName,
+            Params = QueryParamHelper.Parse(Params)
+        };
+        var src = _resolver.Resolve(image, imageContext, ViewContext)?.Url;
 
         if (src == null)
         {
