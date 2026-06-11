@@ -37,12 +37,12 @@ public class DefaultImageDataProvider : IImageDataProvider
         {
             CroppedImageField cropped when cropped.HasValue && !string.IsNullOrEmpty(cropName) =>
                 (width.HasValue || height.HasValue)
-                    ? _imageCrop.CropImage(cropped, cropName, width, height)
+                    ? _imageCrop.CropImage(cropped, cropName, width, height, context.ResizeMode)
                     : cropped.Media?.PublicUrl,
 
             CroppedImageField cropped when cropped.HasValue =>
                 (width.HasValue || height.HasValue)
-                    ? _imageCrop.CropImage(cropped, width, height)
+                    ? _imageCrop.CropImage(cropped, width, height, context.ResizeMode)
                     : cropped.Media?.PublicUrl,
 
             ImageField imgField when imgField.HasValue =>

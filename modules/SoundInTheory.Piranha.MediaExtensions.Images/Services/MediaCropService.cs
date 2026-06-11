@@ -13,6 +13,8 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SoundInTheory.Piranha.MediaExtensions.Images.Model;
+using ImageSharpResizeMode = SixLabors.ImageSharp.Processing.ResizeMode;
+using MediaResizeMode = SoundInTheory.Piranha.MediaExtensions.Images.Model.ResizeMode;
 using Piranha.Cache;
 using SoundInTheory.Piranha.MediaExtensions.Images.ExtensionMethods;
 
@@ -52,9 +54,9 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
         /// <param name="width">The requested width</param>
         /// <param name="height">The optionally requested height</param>
         /// <returns>The public URL</returns>
-        public string EnsureVersion(Guid id, CropSettings settings, int? width, int? height = null)
+        public string EnsureVersion(Guid id, CropSettings settings, int? width, int? height = null, MediaResizeMode resizeMode = MediaResizeMode.Fill)
         {
-            return EnsureVersionAsync(id, settings, width, height).GetAwaiter().GetResult();
+            return EnsureVersionAsync(id, settings, width, height, resizeMode).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -65,14 +67,14 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
         /// <param name="width">The requested width</param>
         /// <param name="height">The optionally requested height</param>
         /// <returns>The public URL</returns>
-        public async Task<string> EnsureVersionAsync(Guid id, CropSettings settings, int? width, int? height = null)
+        public async Task<string> EnsureVersionAsync(Guid id, CropSettings settings, int? width, int? height = null, MediaResizeMode resizeMode = MediaResizeMode.Fill)
         {
             var media = await _api.Media.GetByIdAsync(id).ConfigureAwait(false);
 
-            return media != null ? await EnsureVersionAsync(media, settings, width, height).ConfigureAwait(false) : null;
+            return media != null ? await EnsureVersionAsync(media, settings, width, height, resizeMode).ConfigureAwait(false) : null;
         }
 
-        public async Task<string> EnsureVersionAsync(Media media, CropSettings settings, int? width, int? height = null)
+        public async Task<string> EnsureVersionAsync(Media media, CropSettings settings, int? width, int? height = null, MediaResizeMode resizeMode = MediaResizeMode.Fill)
         {
             // If no processor is registered, return the original url
             if (_processor == null)
@@ -102,7 +104,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
             }
 
             var fileInfo = new FileInfo(media.Filename);
-            var resourceName = GetResourceName(media, settings, width, height, fileInfo.Extension);
+            var resourceName = GetResourceName(media, settings, width, height, fileInfo.Extension, resizeMode);
             var filePath = "wwwroot/uploads/" + _storage.GetResourceName(media, resourceName);
 
             if (File.Exists(filePath))
@@ -125,7 +127,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
 
                     using (var output = new MemoryStream())
                     {
-                        CropImage(stream, output, settings, width, height);
+                        CropImage(stream, output, settings, width, height, resizeMode);
 
                         output.Position = 0;
                         bool upload = false;
@@ -154,8 +156,15 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
             }
         }
 
-        private void CropImage(Stream source, Stream dest, CropSettings settings, int? width = null, int? height = null)
+        private void CropImage(Stream source, Stream dest, CropSettings settings, int? width = null, int? height = null, MediaResizeMode resizeMode = MediaResizeMode.Fill)
         {
+            var imageSharpMode = resizeMode switch
+            {
+                MediaResizeMode.Contain => ImageSharpResizeMode.Max,
+                MediaResizeMode.Pad => ImageSharpResizeMode.Pad,
+                _ => ImageSharpResizeMode.Crop
+            };
+
             using (var image = Image.Load(source, out IImageFormat format))
             {
                 var cropRect = new Rectangle(settings.x, settings.y, settings.width, settings.height);
@@ -185,7 +194,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
                             x.Resize(new ResizeOptions
                             {
                                 Size = new Size(width.Value, height.Value),
-                                Mode = ResizeMode.Crop
+                                Mode = imageSharpMode
                             });
                         }
                     });
@@ -204,7 +213,8 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
                             x.Resize(new ResizeOptions
                             {
                                 Size = new Size(width.Value, height.Value),
-                                Mode = ResizeMode.Crop
+                                Mode = imageSharpMode,
+                                PadColor = Color.White
                             });
                         }
                     });
@@ -222,7 +232,7 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
         /// <param name="height">Optional requested height</param>
         /// <param name="extension">Optional requested extension</param>
         /// <returns>The name</returns>
-        private string GetResourceName(Media media, CropSettings settings, int? width = null, int? height = null, string extension = null)
+        private string GetResourceName(Media media, CropSettings settings, int? width = null, int? height = null, string extension = null, MediaResizeMode resizeMode = MediaResizeMode.Fill)
         {
             var filename = new FileInfo(media.Filename);
             var sb = new StringBuilder(filename.Name.Replace(filename.Extension, ""));
@@ -249,6 +259,12 @@ namespace SoundInTheory.Piranha.MediaExtensions.Images.Services
                     sb.Append("x");
                     sb.Append(height.Value);
                 }
+            }
+
+            if (resizeMode != MediaResizeMode.Fill)
+            {
+                sb.Append("_");
+                sb.Append(resizeMode.ToString().ToLowerInvariant());
             }
 
             if (string.IsNullOrEmpty(extension))

@@ -33,6 +33,9 @@ public class ImageBgTagHelper : TagHelper
     [HtmlAttributeName("params")]
     public string? Params { get; set; }
 
+    [HtmlAttributeName("resize-mode")]
+    public ResizeMode ResizeMode { get; set; } = ResizeMode.Fill;
+
     public ImageBgTagHelper(ImageResolver resolver)
     {
         _resolver = resolver;
@@ -45,7 +48,8 @@ public class ImageBgTagHelper : TagHelper
             Width = W,
             Height = H,
             CropName = CropName,
-            Params = QueryParamHelper.Parse(Params)
+            Params = QueryParamHelper.Parse(Params),
+            ResizeMode = ResizeMode
         };
         var url = _resolver.Resolve(ImageBg, imageContext, ViewContext)?.Url;
 

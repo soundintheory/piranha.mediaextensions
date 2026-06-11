@@ -8,4 +8,5 @@ public class ImageContext
     public int? Height { get; set; }
     public string? CropName { get; set; }
     public IDictionary<string, string?> Params { get; set; } = new Dictionary<string, string?>();
+    public ResizeMode ResizeMode { get; set; } = ResizeMode.Fill;
 }
