@@ -59,7 +59,10 @@ public class ImageTagHelper : TagHelper
             Params = QueryParamHelper.Parse(Params),
             ResizeMode = ResizeMode
         };
-        var data = _resolver.Resolve(image, imageContext, ViewContext);
+        _resolver.TryResolve(image, imageContext, ViewContext, out var data, out var error);
+        if (error != null)
+            ResolveErrorComment.Append(output, error, Fallback != null);
+
         var src = data?.Url;
 
         if (src == null)
@@ -68,7 +71,10 @@ public class ImageTagHelper : TagHelper
                 src = Fallback;
             else
             {
-                output.SuppressOutput();
+                if (error != null)
+                    output.TagName = null;   // keep diagnostic comment, render no <img>
+                else
+                    output.SuppressOutput();
                 return;
             }
         }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.WebUtilities;
 using SoundInTheory.Piranha.MediaExtensions.Images.Model;
 using SoundInTheory.Piranha.MediaExtensions.Images.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -39,5 +40,22 @@ public class ImageResolver
         }
 
         return null;
+    }
+
+    public bool TryResolve(object? image, ImageContext context, ActionContext actionContext,
+        out ImageData? data, out Exception? error)
+    {
+        error = null;
+        try
+        {
+            data = Resolve(image, context, actionContext);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            data = null;
+            error = ex;
+            return false;
+        }
     }
 }

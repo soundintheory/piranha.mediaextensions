@@ -51,7 +51,11 @@ public class ImageBgTagHelper : TagHelper
             Params = QueryParamHelper.Parse(Params),
             ResizeMode = ResizeMode
         };
-        var url = _resolver.Resolve(ImageBg, imageContext, ViewContext)?.Url;
+        _resolver.TryResolve(ImageBg, imageContext, ViewContext, out var data, out var error);
+        if (error != null)
+            ResolveErrorComment.Append(output, error, ImageFallback != null);
+
+        var url = data?.Url;
 
         if (url == null)
         {

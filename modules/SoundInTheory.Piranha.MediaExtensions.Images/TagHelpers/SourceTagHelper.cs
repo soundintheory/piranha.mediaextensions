@@ -36,6 +36,9 @@ public class SourceTagHelper : TagHelper
     [HtmlAttributeName("max-width")]
     public int? MaxWidth { get; set; }
 
+    [HtmlAttributeName("fallback")]
+    public string? Fallback { get; set; }
+
     [HtmlAttributeName("params")]
     public string? Params { get; set; }
 
@@ -59,12 +62,24 @@ public class SourceTagHelper : TagHelper
             Params = QueryParamHelper.Parse(Params),
             ResizeMode = ResizeMode
         };
-        var src = _resolver.Resolve(image, imageContext, ViewContext)?.Url;
+        _resolver.TryResolve(image, imageContext, ViewContext, out var data, out var error);
+        if (error != null)
+            ResolveErrorComment.Append(output, error, Fallback != null);
+
+        var src = data?.Url;
 
         if (src == null)
         {
-            output.SuppressOutput();
-            return;
+            if (Fallback != null)
+                src = Fallback;
+            else
+            {
+                if (error != null)
+                    output.TagName = null;   // keep diagnostic comment, render no <source>
+                else
+                    output.SuppressOutput();
+                return;
+            }
         }
 
         output.Attributes.SetAttribute("srcset", src);
