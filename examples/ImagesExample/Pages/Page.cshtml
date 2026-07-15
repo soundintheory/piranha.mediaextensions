@@ -25,7 +25,7 @@
 </header>
 
 <main>
-    @foreach (var content in contents)
+    @foreach (var content in contents.Where(x => x.Images.TestImageFieldWithSettings.HasValue))
     {
         <div class="card">
             <div class="card-body">
@@ -39,6 +39,8 @@
                 <img image="content.Images.TestImageFieldWithSettings" w="200" crop-name="Second Crop" />
                 <h4>TestImageFieldWithSettings BG:</h4>
                 <div image-bg="content.Images.TestImageFieldWithSettings" w="720" style="aspect-ratio:16/9; max-width:720px"></div>
+                <h4>TestImageFieldWithSettings (ImageSharp Web):</h4>
+                <img src="/image/@content.Images.TestImageFieldWithSettings.Id?width=600&height=400" />
             </div>
         </div>
     }

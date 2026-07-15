@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
@@ -13,6 +14,7 @@ using SoundInTheory.Piranha.MediaExtensions.Images.Hooks;
 using SoundInTheory.Piranha.MediaExtensions.Images.ImageSharpProcessors;
 using SoundInTheory.Piranha.MediaExtensions.Images.Modules;
 using SoundInTheory.Piranha.MediaExtensions.Images.Services;
+using SoundInTheory.Piranha.MediaExtensions.Images.Startup;
 using SoundInTheory.Piranha.MediaExtensions.Images.TagHelpers.Shared;
 using System;
 using System.Collections.Generic;
@@ -39,9 +41,16 @@ public static class ImagesExtensions
         return serviceBuilder;
     }
 
+    [Obsolete("Please call UseImageSharpWeb directly on IServiceCollection, placed before the AddPiranha call", error: true)]
     public static IImageSharpBuilder UseImageSharpForMedia(this PiranhaServiceBuilder serviceBuilder, Action<PiranhaMediaImageProviderOptions> opts = null)
     { 
         var imageSharpBuilder = serviceBuilder.Services.AddImageSharp();
+        return imageSharpBuilder;
+    }
+
+    public static IImageSharpBuilder UseImageSharpWeb(this IServiceCollection services, Action<PiranhaMediaImageProviderOptions> opts = null)
+    {
+        var imageSharpBuilder = services.AddImageSharp();
 
         imageSharpBuilder
             .RemoveProvider<PhysicalFileSystemProvider>()
@@ -53,6 +62,9 @@ public static class ImagesExtensions
             .SetRequestParser<PiranhaMediaRequestParser>()
             .AddProvider<PiranhaMediaImageProvider>()
             .AddProcessor<CropWebProcessor>();
+
+        services.AddHttpContextAccessor();
+        services.AddTransient<IStartupFilter, ImageSharpWebStartupFilter>();
 
         return imageSharpBuilder;
     }
@@ -77,6 +89,7 @@ public static class ImagesExtensions
         return serviceBuilder;
     }
 
+    [Obsolete("This method is redundant and any references should be removed", error: true)]
     public static PiranhaApplicationBuilder UseImageSharpForMedia(this PiranhaApplicationBuilder applicationBuilder)
     {
         applicationBuilder.Builder.UseImageSharp();

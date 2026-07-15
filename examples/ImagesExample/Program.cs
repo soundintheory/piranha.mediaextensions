@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Piranha;
 using Piranha.AspNetCore.Identity.SQLite;
 using Piranha.AttributeBuilder;
@@ -12,6 +13,13 @@ using SoundInTheory.Piranha.MediaExtensions.Images.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.UseImageSharpWeb()
+    .AddRemoteImageProvider(o =>
+    {
+        o.WhiteList = [
+            "upload.wikimedia.org"
+        ];
+    });
 
 builder.AddPiranha(options =>
 {
@@ -32,14 +40,6 @@ builder.AddPiranha(options =>
     options.UseMemoryCache();
 
     options.UseCroppedImageField();
-
-    options.UseImageSharpForMedia()
-        .AddRemoteImageProvider(o =>
-        {
-            o.WhiteList = [
-                "upload.wikimedia.org"
-            ];
-        });
 
     options.UseGalleryField();
     options.UseMediaManager();
@@ -89,7 +89,6 @@ app.UsePiranha(options =>
     EditorConfig.FromFile("editorconfig.json");
 
     options.UseCroppedImageField();
-    options.UseImageSharpForMedia();
     options.UseGalleryField();
     options.UseManager();
     options.UseTinyMCE();
