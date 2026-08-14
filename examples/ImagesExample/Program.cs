@@ -19,7 +19,8 @@ builder.Services.UseImageSharpWeb()
         o.WhiteList = [
             "upload.wikimedia.org"
         ];
-    });
+    })
+    .AddWebpConversion();
 
 builder.AddPiranha(options =>
 {

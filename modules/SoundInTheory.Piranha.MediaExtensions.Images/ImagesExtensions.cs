@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Piranha;
 using Piranha.AspNetCore;
 using SixLabors.ImageSharp.Web.DependencyInjection;
+using SixLabors.ImageSharp.Web.Middleware;
 using SixLabors.ImageSharp.Web.Providers;
 using SoundInTheory.Piranha.MediaExtensions.Images;
 using SoundInTheory.Piranha.MediaExtensions.Images.Fields;
@@ -78,6 +79,41 @@ public static class ImagesExtensions
                 o.RootName = "/remote";
                 opts?.Invoke(o);
             });
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Automatically converts processed images to WebP.
+    /// </summary>
+    /// <remarks>
+    /// By default only requests under the Piranha media root are converted. The remote provider is
+    /// ProcessingBehavior.CommandOnly, so opting it in via <see cref="WebpConversionOptions.Roots"/>
+    /// makes every remote URL get decoded and re-encoded rather than passing straight through.
+    /// </remarks>
+    public static IImageSharpBuilder AddWebpConversion(this IImageSharpBuilder builder, Action<WebpConversionOptions> opts = null)
+    {
+        builder
+            .AddProcessor<AutoWebpWebProcessor>()
+            .Configure<WebpConversionOptions>(o => opts?.Invoke(o));
+
+        // PostConfigure rather than Configure, so we wrap any OnParseCommandsAsync the host registered
+        // rather than being overwritten by it. ImageSharpMiddlewareOptions is resolved as a singleton,
+        // so this runs exactly once - which matters, because the chaining below is not idempotent.
+        builder.Services
+            .AddOptions<ImageSharpMiddlewareOptions>()
+            .PostConfigure<IOptions<WebpConversionOptions>, IOptions<PiranhaMediaImageProviderOptions>>(
+                (middleware, webp, media) =>
+                {
+                    var injector = new WebpConversionCommandInjector(webp.Value, media.Value);
+
+                    var onParseCommands = middleware.OnParseCommandsAsync;
+                    middleware.OnParseCommandsAsync = async context =>
+                    {
+                        await onParseCommands(context);
+                        await injector.InjectAsync(context);
+                    };
+                });
 
         return builder;
     }
